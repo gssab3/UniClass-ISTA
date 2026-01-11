@@ -33,14 +33,14 @@ jobs:
         cache: 'maven' 
 
     - name: Build, Test ed Esecuzione LoginServletTest
-      # Questo comando esegue il build e i 7 test che hai trovato
+      # Questo comando esegue il build e i test
       run: mvn -B clean package --file pom.xml 
 
     - name: Upload del JAR/WAR di Build (Artefatto)
       uses: actions/upload-artifact@v4
       with:
         name: uni-class-build
-        # Verifica questo path. Adattalo se necessario (es. solo target/*.jar)
+        
         path: target/UniClass-Dependability.war
 
     - name: Upload Report Coverage (JaCoCo)
