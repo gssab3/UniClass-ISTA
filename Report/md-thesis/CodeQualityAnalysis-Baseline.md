@@ -51,22 +51,22 @@ The following diagram highlights the relationship between issue types and severi
 
 This representation shows that Bugs span the entire severity spectrum, while Vulnerabilities are concentrated in higher severity levels, confirming their critical security relevance.
 
-3. Security and Reliability Perspective
-3.1 Security: Vulnerabilities
+## 3. Security and Reliability Perspective
+### 3.1 Security: Vulnerabilities
 
 The analysis detected 42 Vulnerabilities, explicitly classified by SonarCloud as security-related issues.
 These vulnerabilities may enable data exposure, injection attacks, authentication or authorization bypasses, and weak cryptographic implementations.
 
 Due to their nature, all Vulnerabilities are considered high priority, regardless of their nominal severity classification.
 
-3.2 Reliability: Bugs
+### 3.2 Reliability: Bugs
 
 A total of 312 Bugs were identified, many of which are classified as CRITICAL or MAJOR.
 These issues affect functional correctness, runtime stability, error handling, and edge-case behavior.
 
 From a dependability perspective, Bugs directly undermine system reliability and must be addressed before any structural refactoring or optimization activity.
 
-4. Criticality Analysis by Quality Dimension
+## 4. Criticality Analysis by Quality Dimension
 
 A severity-only interpretation is insufficient to guide effective remediation.
 BLOCKER issues represent conditions that may cause system failure, infinite execution paths, or invalid states, preventing the system from being considered production-ready.
@@ -74,7 +74,7 @@ BLOCKER issues represent conditions that may cause system failure, infinite exec
 CRITICAL issues form the core technical risk of the project, affecting security and reliability in ways that may compromise data integrity or availability.
 MAJOR issues increase long-term technical risk, while MINOR issues mainly affect readability and maintainability and are intentionally deprioritized in the initial remediation phase.
 
-5. Risk-Oriented Interpretation
+## 5. Risk-Oriented Interpretation
 
 To align technical findings with engineering decision-making, issues were reclassified according to their dominant quality impact.
 
@@ -83,42 +83,33 @@ To align technical findings with engineering decision-making, issues were reclas
 
 Despite the numerical prevalence of maintainability-related issues, the analysis clearly shows that security and reliability constitute the highest operational risk and therefore drive remediation priorities.
 
-6. Initial Remediation Strategy and Priority Plan
+## 6. Initial Remediation Strategy and Priority Plan
 
-Based on the analysis, a phased remediation strategy was defined following a strict risk-first approach.
+Based on the analysis, a phased remediation strategy was defined following a strict **risk-first approach**.
 
-Phase 1 – Security Hardening
+### Phase 1 – Security Hardening
+- Fix all detected Vulnerabilities  
+- Resolve BLOCKER and CRITICAL issues related to security  
+- Enforce secure coding practices  
 
-Fix all detected Vulnerabilities
+### Phase 2 – Reliability Stabilization
+- Address CRITICAL and MAJOR Bugs  
+- Improve error handling and defensive logic  
+- Reduce runtime failure risks  
 
-Resolve BLOCKER and CRITICAL issues related to security
+### Phase 3 – Structural Quality Improvements
+- Refactor selected MAJOR Code Smells  
+- Improve extensibility and architectural clarity  
 
-Enforce secure coding practices
+### Phase 4 – Maintainability Cleanup
+- Resolve remaining MINOR Code Smells  
+- Apply cosmetic and stylistic improvements  
 
-Phase 2 – Reliability Stabilization
+> **TODO:** Insert remediation priority timeline or flow diagram.
 
-Address CRITICAL and MAJOR Bugs
+This phased approach ensures that **security and dependability are treated as first-class concerns**, while maintainability improvements are addressed only after achieving a stable and secure baseline.
 
-Improve error handling and defensive logic
-
-Reduce runtime failure risks
-
-Phase 3 – Structural Quality Improvements
-
-Refactor selected MAJOR Code Smells
-
-Improve extensibility and architectural clarity
-
-Phase 4 – Maintainability Cleanup
-
-Resolve remaining MINOR Code Smells
-
-Apply cosmetic and stylistic improvements
-
-//GRAFICO
-
-
-This phased approach ensures that security and dependability are treated as first-class concerns, while maintainability improvements are addressed only after achieving a stable and secure baseline.
+---
 
 7. Traceability: Issue-Based Analysis (SonarCloud Rules)
 
