@@ -78,7 +78,7 @@ MAJOR issues increase long-term technical risk, while MINOR issues mainly affect
 
 To align technical findings with engineering decision-making, issues were reclassified according to their dominant quality impact.
 
-///GRAFICO
+//> **TODO:** GRAFICO
 
 
 Despite the numerical prevalence of maintainability-related issues, the analysis clearly shows that security and reliability constitute the highest operational risk and therefore drive remediation priorities.
