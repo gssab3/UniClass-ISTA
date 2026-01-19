@@ -104,7 +104,18 @@ Table 3 reports the median (*p50*) and 99th percentile (*p99*) latencies derived
 The sample time analysis shows extremely low median latencies, with the 99th percentile remaining below **0.1 μs** across all benchmarks. This indicates a highly stable execution profile with minimal latency variability and rare performance outliers.
 
 ---
+## Key Findings
+Service Efficiency
+The DocenteService demonstrated the highest efficiency across all search-based benchmarks. Methods such as benchmarkTrovaPerCorso and benchmarkTrovaPerMatricola reached throughput values exceeding 850 ops/us. This performance level suggests a highly optimized retrieval process for faculty-related data.
 
+## Operations Complexity
+The method benchmarkTrovaTutti (CoordinatoreService) showed the lowest throughput (153.86 ops/us) and the highest average time (0.00643 us/op). This result is expected, as mass data retrieval typically entails higher computational and I/O overhead compared to targeted single-field searches.
+
+## Authentication Latency
+Login operations maintained consistent performance levels across different user types. The average time for benchmarkLoginAccademico (0.00261 us/op) was comparable to benchmarkLoginPersonaleTA (0.00275 us/op), indicating a uniform authentication logic.
+
+## Reliability and Percentiles
+Statistical sampling showed that 99% (p99) of operations are completed within 0.1 us. While some outliers reached significantly higher values (e.g., maximum sample times up to 568.32 us for failed email lookups), the overall distribution remains stable and predictable.
 
 ---
 
