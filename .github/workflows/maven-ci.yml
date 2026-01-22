@@ -32,7 +32,7 @@ jobs:
         distribution: 'temurin'
         cache: 'maven' 
 
-    - name: Build, Test ed Esecuzione LoginServletTest
+    - name: Build, Test ed Esecuzione Test
       # Questo comando esegue il build e i test
       run: mvn -B clean package --file pom.xml 
 
