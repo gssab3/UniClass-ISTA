@@ -3,13 +3,7 @@
 <%@ page import="java.util.List" %>
 <%@ page import="it.unisa.uniclass.orari.model.*" %>
 <%@ page import="java.sql.Time" %>
-<%@ page import="java.util.stream.Collectors" %><%--
-  Created by IntelliJ IDEA.
-  User: davan
-  Date: 08/01/2025
-  Time: 00:15
-  To change this template use File | Settings | File Templates.
---%>
+<%@ page import="java.util.stream.Collectors" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
@@ -20,25 +14,21 @@
     session.setAttribute("utenteEmail", user.getEmail());
   }
 
-
-
-  /* controllo tipo utente*/
-
-  Tipo tipoUtente;
-  if(user != null)
+  /* Controllo tipo utente */
+  Tipo tipoUtente = null;
+  if(user != null) {
     tipoUtente = (Tipo) user.getTipo();
-  else
-    tipoUtente = null;
+  }
 
   CorsoLaurea corsoLaurea = (CorsoLaurea) request.getAttribute("corsoLaurea");
   Resto resto = (Resto) request.getAttribute("resto");
   AnnoDidattico annoDidattico = (AnnoDidattico) request.getAttribute("anno");
 
   List<Lezione> lezioni = (List<Lezione>) request.getAttribute("lezioni");
-
-
 %>
-<html>
+
+<!DOCTYPE html>
+<html lang="it" xml:lang="it">
 <head>
   <title>Orario UniClass</title>
   <script src="scripts/sidebar.js" type="text/javascript"></script>
@@ -51,94 +41,36 @@
 </head>
 <body>
 
-<% if(tipoUtente == null) { %>
-
 <div class="barraNavigazione" id="barraNavigazione">
-  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"><img src="images/icons/menuOpenIcon.png" alt="closebtn"></a>
-  <p>Menu<p>
+  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">
+    <img src="images/icons/menuOpenIcon.png" alt="closebtn">
+  </a>
+  <p>Menu</p>
   <ul id="menu">
-    <li id="aule"><a href="aula.jsp">Aule</a>
-    </li>
-    <li id="mappa"><a href="mappa.jsp">Mappa</a>
-    </li>
-    <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a>
-    </li>
-    <li id="infoapp"><a href="infoapp.jsp">Info App</a>
-    </li>
-    <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a>
-    </li>
+    <li id="aule"><a href="aula.jsp">Aule</a></li>
+
+    <%-- Logica Condizionale Menu --%>
+    <% if (tipoUtente != null) { %>
+    <% if (tipoUtente.equals(Tipo.PersonaleTA)) { %>
+    <li id="gutenti"><a href="PersonaleTA/AttivaUtenti.jsp">Gestione Utenti</a></li>
+    <% } else { %>
+    <li id="conversazioni"><a href="Conversazioni">Conversazioni</a></li>
+    <% } %>
+    <% } %>
+
+    <li id="mappa"><a href="mappa.jsp">Mappa</a></li>
+    <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a></li>
+    <li id="infoapp"><a href="infoapp.jsp">Info App</a></li>
+    <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a></li>
   </ul>
 </div>
-
-<% } else if(tipoUtente.equals(Tipo.Studente)) { %>
-
-<div class="barraNavigazione" id="barraNavigazione">
-  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"><img src="images/icons/menuOpenIcon.png" alt="closebtn"></a>
-  <p>Menu<p>
-  <ul id="menu">
-    <li id="aule"><a href="aula.jsp">Aule</a>
-    </li>
-    <li id="conversazioni"><a href="Conversazioni">Conversazioni</a>
-    </li>
-    <li id="mappa"><a href="mappa.jsp">Mappa</a>
-    </li>
-    <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a>
-    </li>
-    <li id="infoapp"><a href="infoapp.jsp">Info App</a>
-    </li>
-    <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a>
-    </li>
-  </ul>
-</div>
-<% } else if(tipoUtente.equals(Tipo.Docente) || tipoUtente.equals(Tipo.Coordinatore)) { %>
-
-<div class="barraNavigazione" id="barraNavigazione">
-  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"><img src="images/icons/menuOpenIcon.png" alt="closebtn"></a>
-  <p>Menu<p>
-  <li id="aule"><a href="aula.jsp">Aule</a>
-  </li>
-  <li id="conversazioni"><a href="Conversazioni">Conversazioni</a>
-  </li>
-  <li id="mappa"><a href="mappa.jsp">Mappa</a>
-  </li>
-  <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a>
-  </li>
-  <li id="infoapp"><a href="infoapp.jsp">Info App</a>
-  </li>
-  <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a>
-  </li>
-  </ul>
-</div>
-
-<% } else if(tipoUtente.equals(Tipo.PersonaleTA)) { %>
-
-<div class="barraNavigazione" id="barraNavigazione">
-  <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"><img src="images/icons/menuOpenIcon.png" alt="closebtn"></a>
-  <p>Menu<p>
-  <ul id="menu">
-    <li id="aule"><a href="aula.jsp">Aule</a>
-    </li>
-    <li id="gutenti"><a href="PersonaleTA/AttivaUtenti.jsp">Gestione Utenti</a>
-    </li>
-    <li id="mappa"><a href="mappa.jsp">Mappa</a>
-    </li>
-    <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a>
-    </li>
-    <li id="infoapp"><a href="infoapp.jsp">Info App</a>
-    </li>
-    <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a>
-    </li>
-  </ul>
-</div>
-<% } %>
 
 <jsp:include page="header.jsp"/>
 
-
-
 <br>
-<h1>ORARIO: <%= corsoLaurea.getNome()%> <%=resto.getNome()%> <%=annoDidattico.getAnno()%></h1>
+<h1>ORARIO: <%= corsoLaurea != null ? corsoLaurea.getNome() : "" %> <%= resto != null ? resto.getNome() : "" %> <%= annoDidattico != null ? annoDidattico.getAnno() : "" %></h1>
 <br>
+
 <div class="table-container">
   <table class="schedule-table">
     <tr>
@@ -163,12 +95,13 @@
       <th>17:30-18:00</th>
     </tr>
     <%
-      for (Giorno giorno : Giorno.values()) {
+      if (lezioni != null) {
+        for (Giorno giorno : Giorno.values()) {
     %>
     <tr>
       <td class="highlight"><b><%= giorno.toString() %></b></td>
       <%
-        int currentHour = 9 * 2; // Iniziamo da 9:00, considerando che 1 unità = 30 minuti (9 * 2)
+        int currentHour = 9 * 2; // Iniziamo da 9:00 (1 unità = 30 minuti)
 
         for (Lezione lezione : lezioni) {
           if (lezione.getGiorno().equals(giorno)) {
@@ -185,15 +118,17 @@
         }
       %>
       <td colspan="<%= durataOre %>" class="subject-<%= lezione.getCorso().getNome().toLowerCase().replaceAll("\\s+", "-") %>">
-        <%= lezione.getCorso().getNome() %><br><%= lezione.getDocenti().stream()
-              .map(docente -> docente.getNome() + " " + docente.getCognome())
-              .collect(Collectors.joining(", ")) %>
+        <%= lezione.getCorso().getNome() %><br>
+        <%= lezione.getDocenti().stream()
+                .map(docente -> docente.getNome() + " " + docente.getCognome())
+                .collect(Collectors.joining(", ")) %>
       </td>
       <%
             currentHour += durataOre;
           }
         }
-        while (currentHour < 18 * 2) { // Raggiungi le 18:00 (considerando 1 unità = 30 min)
+        // Riempi le celle rimanenti fino alle 18:00
+        while (currentHour < 18 * 2) {
       %>
       <td></td>
       <%
@@ -201,12 +136,17 @@
         }
       %>
     </tr>
-    <% } %>
+    <%
+        }
+      }
+    %>
   </table>
 </div>
+
 <br>
 <br>
 <br>
+
 <%@include file = "footer.jsp" %>
 </body>
 </html>

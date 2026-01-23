@@ -20,21 +20,19 @@
         session.setAttribute("utenteEmail", user.getEmail());
     }
 
-
-    /* controllo tipo utente*/
-
-    Tipo tipoUtente;
-    if(user != null)
+    /* Controllo tipo utente */
+    Tipo tipoUtente = null;
+    if(user != null) {
         tipoUtente = (Tipo) user.getTipo();
-    else
-        tipoUtente = null;
+    }
 
     List<CorsoLaurea> corsiLaurea = (List<CorsoLaurea>) request.getAttribute("corsi");
     List<Aula> aule = (List<Aula>) request.getAttribute("aule");
     String edificio = (String) request.getAttribute("ed");
-
 %>
-<html>
+
+<!DOCTYPE html>
+<html lang="it" xml:lang="it">
 <head>
     <title>Edificio</title>
     <script src="scripts/sidebar.js" type="text/javascript"></script>
@@ -47,170 +45,115 @@
 </head>
 <body>
 
-<% if(tipoUtente == null) { %>
-
 <div class="barraNavigazione" id="barraNavigazione">
-    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"><img src="images/icons/menuOpenIcon.png" alt="closebtn"></a>
-    <p>Menu<p>
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">
+        <img src="images/icons/menuOpenIcon.png" alt="closebtn">
+    </a>
+    <p>Menu</p>
     <ul id="menu">
-        <li id="aule"><a href="aula.jsp">Aule</a>
-        </li>
-        <li id="mappa"><a href="mappa.jsp">Mappa</a>
-        </li>
-        <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a>
-        </li>
-        <li id="infoapp"><a href="infoapp.jsp">Info App</a>
-        </li>
-        <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a>
-        </li>
+        <li id="aule"><a href="aula.jsp">Aule</a></li>
+
+        <%-- Logica Condizionale Menu --%>
+        <% if (tipoUtente != null) { %>
+        <% if (tipoUtente.equals(Tipo.PersonaleTA)) { %>
+        <li id="gutenti"><a href="PersonaleTA/AttivaUtenti.jsp">Gestione Utenti</a></li>
+        <% } else if (tipoUtente.equals(Tipo.Studente) ||
+                tipoUtente.equals(Tipo.Docente) ||
+                tipoUtente.equals(Tipo.Coordinatore)) { %>
+        <li id="conversazioni"><a href="Conversazioni">Conversazioni</a></li>
+        <% } %>
+        <% } %>
+
+        <li id="mappa"><a href="mappa.jsp">Mappa</a></li>
+        <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a></li>
+        <li id="infoapp"><a href="infoapp.jsp">Info App</a></li>
+        <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a></li>
     </ul>
 </div>
-
-<% } else if(tipoUtente.equals(Tipo.Studente)) { %>
-
-<div class="barraNavigazione" id="barraNavigazione">
-    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"><img src="images/icons/menuOpenIcon.png" alt="closebtn"></a>
-    <p>Menu<p>
-    <ul id="menu">
-        <li id="aule"><a href="aula.jsp">Aule</a>
-        </li>
-        <li id="conversazioni"><a href="Conversazioni">Conversazioni</a>
-        </li>
-        <li id="mappa"><a href="mappa.jsp">Mappa</a>
-        </li>
-        <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a>
-        </li>
-        <li id="infoapp"><a href="infoapp.jsp">Info App</a>
-        </li>
-        <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a>
-        </li>
-    </ul>
-</div>
-<% } else if(tipoUtente.equals(Tipo.Docente) || tipoUtente.equals(Tipo.Coordinatore)) { %>
-
-<div class="barraNavigazione" id="barraNavigazione">
-    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"><img src="images/icons/menuOpenIcon.png" alt="closebtn"></a>
-    <p>Menu<p>
-    <li id="aule"><a href="aula.jsp">Aule</a>
-    </li>
-    <li id="conversazioni"><a href="Conversazioni">Conversazioni</a>
-    </li>
-    <li id="mappa"><a href="mappa.jsp">Mappa</a>
-    </li>
-    <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a>
-    </li>
-    <li id="infoapp"><a href="infoapp.jsp">Info App</a>
-    </li>
-    <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a>
-    </li>
-    </ul>
-</div>
-
-<% } else if(tipoUtente.equals(Tipo.PersonaleTA)) { %>
-
-<div class="barraNavigazione" id="barraNavigazione">
-    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"><img src="images/icons/menuOpenIcon.png" alt="closebtn"></a>
-    <p>Menu<p>
-    <ul id="menu">
-        <li id="aule"><a href="aula.jsp">Aule</a>
-        </li>
-        <li id="gutenti"><a href="PersonaleTA/AttivaUtenti.jsp">Gestione Utenti</a>
-        </li>
-        <li id="mappa"><a href="mappa.jsp">Mappa</a>
-        </li>
-        <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a>
-        </li>
-        <li id="infoapp"><a href="infoapp.jsp">Info App</a>
-        </li>
-        <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a>
-        </li>
-    </ul>
-</div>
-<% } %>
 
 <jsp:include page="header.jsp"/>
 <br>
 <br>
 
-<h1> Edificio <%= edificio%> </h1>
-
-
-
-
+<h1> Edificio <%= edificio != null ? edificio : "" %> </h1>
 
 <ul class="buildings">
     <%
-        LocalTime oraCorrente = LocalTime.now();
-        LocalDate oggi = LocalDate.now();
-        String giornoCorrente = oggi.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ITALY);
-        String giornoCorrenteMaiuscolo = giornoCorrente.replace("è", "e").replace("ì", "i").toUpperCase(Locale.ITALY);
+        if (aule != null) {
+            LocalTime oraCorrente = LocalTime.now();
+            LocalDate oggi = LocalDate.now();
+            String giornoCorrente = oggi.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ITALY);
+            // Normalizza giorno corrente per confronto (es. "martedì" -> "MARTEDI")
+            String giornoCorrenteMaiuscolo = giornoCorrente.replace("è", "e").replace("ì", "i").toUpperCase(Locale.ITALY);
 
-        for (Aula aula : aule){
-            boolean occ = false; // Reset for each classroom
+            for (Aula aula : aule){
+                boolean occ = false; // Reset for each classroom
+                LezioneService lezioneService = new LezioneService();
+                List<Lezione> lezioni = lezioneService.trovaLezioniAule(aula.getNome());
 
-            LezioneService lezioneService = new LezioneService();
-            List<Lezione> lezioni = lezioneService.trovaLezioniAule(aula.getNome());
-            lezioni.sort(Comparator.comparing(Lezione::getGiorno).thenComparing(Lezione::getOraInizio));
+                if (lezioni != null) {
+                    lezioni.sort(Comparator.comparing(Lezione::getGiorno).thenComparing(Lezione::getOraInizio));
 
-            // Check if the aula is occupied at the current time of day
-            for(Lezione lezione : lezioni){
-                LocalTime oraInizioLezione = lezione.getOraInizio().toLocalTime();
-                LocalTime oraFineLezione = lezione.getOraFine().toLocalTime();
+                    // Check if the aula is occupied at the current time of day
+                    for(Lezione lezione : lezioni){
+                        if(lezione.getOraInizio() != null && lezione.getOraFine() != null) {
+                            LocalTime oraInizioLezione = lezione.getOraInizio().toLocalTime();
+                            LocalTime oraFineLezione = lezione.getOraFine().toLocalTime();
 
-                if(giornoCorrenteMaiuscolo.equals(lezione.getGiorno().toString())){
-                    if (oraCorrente.isAfter(oraInizioLezione) && oraCorrente.isBefore(oraFineLezione)) {
-
-                        occ = true;
-                        break; // Exit the loop if the room is occupied at the current time
-                    }else{
-                        break;
+                            if(giornoCorrenteMaiuscolo.equals(lezione.getGiorno().toString())){
+                                if (oraCorrente.isAfter(oraInizioLezione) && oraCorrente.isBefore(oraFineLezione)) {
+                                    occ = true;
+                                    break; // Exit the loop if the room is occupied at the current time
+                                }
+                            }
+                        }
                     }
                 }
-            }
-
-            // Output for each classroom
     %>
     <li class="building">
         <% if (occ) { %>
-        <img class="imgOcc" src="images/icons/aulaOccupata.png">
+        <img class="imgOcc" src="images/icons/aulaOccupata.png" alt="Occupata">
         <% } else { %>
-        <img class="imgOcc" src="images/icons/aulaLibera.png">
+        <img class="imgOcc" src="images/icons/aulaLibera.png" alt="Libera">
         <% } %>
         <%= aula.getNome() %>
 
         <ul class="classes">
             <%
-                // Displaying the lessons for the classroom
-                for (Lezione lezione : lezioni) {
-                    if(lezione.getAula().getNome().equals(aula.getNome())){
+                if (lezioni != null) {
+                    for (Lezione lezione : lezioni) {
+                        // Il controllo if(lezione.getAula()...) è tecnicamente ridondante dato che lezioni
+                        // sono filtrate per aula dal service, ma lo manteniamo per sicurezza.
+                        if(lezione.getAula() != null && lezione.getAula().getNome().equals(aula.getNome())){
             %>
             <li class="occupata">
                 <%= lezione.getGiorno() %>
                 <%= lezione.getOraInizio() %>
                 <%= lezione.getOraFine() %>
-                <%= lezione.getCorso().getNome() %>
-                <%= lezione.getCorso().getAnnoDidattico().getAnno() %>
-                <%= lezione.getResto().getNome() %>
+                <%= (lezione.getCorso() != null) ? lezione.getCorso().getNome() : "" %>
+                <%= (lezione.getCorso() != null && lezione.getCorso().getAnnoDidattico() != null) ? lezione.getCorso().getAnnoDidattico().getAnno() : "" %>
+                <%= (lezione.getResto() != null) ? lezione.getResto().getNome() : "" %>
             </li>
             <%
+                        }
                     }
                 }
             %>
         </ul>
     </li>
     <%
-        } // End for each aula
+            } // End for each aula
+        } // End if aule != null
     %>
 </ul>
-
-
-
 
 <script>
     document.querySelectorAll('.building').forEach(building => {
         building.addEventListener('click', () => {
             const classes = building.querySelector('.classes');
-            classes.style.display = classes.style.display === 'none' ? 'block' : 'none';
+            if (classes) {
+                classes.style.display = classes.style.display === 'none' || classes.style.display === '' ? 'block' : 'none';
+            }
         });
     });
 
@@ -218,7 +161,9 @@
         classItem.addEventListener('click', (event) => {
             event.stopPropagation();
             const timetables = classItem.querySelector('.timetables');
-            timetables.style.display = timetables.style.display === 'none' ? 'block' : 'none';
+            if (timetables) {
+                timetables.style.display = timetables.style.display === 'none' ? 'block' : 'none';
+            }
         });
     });
 </script>
@@ -229,4 +174,3 @@
 <%@include file = "footer.jsp" %>
 </body>
 </html>
-
