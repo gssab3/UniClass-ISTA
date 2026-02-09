@@ -1,0 +1,4 @@
+Label,# Samples,Average,Min,Max,Std. Dev.,Error %,Throughput,Received KB/sec,Sent KB/sec,Avg. Bytes
+GET Homepage,1000,13,3,86,9.41,0.000%,18.88645,81.26,2.66,4406.0
+GET Chat,1000,3,0,52,3.73,0.000%,18.89038,61.45,2.79,3331.0
+TOTAL,2000,8,0,86,8.71,0.000%,37.55869,141.89,5.41,3868.5
