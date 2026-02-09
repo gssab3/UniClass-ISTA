@@ -3,7 +3,6 @@ package it.unisa.uniclass.testing.unit.utenti.controller;
 import it.unisa.uniclass.utenti.controller.GetNonAttivati;
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Tipo;
-import it.unisa.uniclass.utenti.service.AccademicoService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;

@@ -4,8 +4,6 @@ import it.unisa.uniclass.common.exceptions.AuthenticationException;
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.PersonaleTA;
 import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.AccademicoService;
-import it.unisa.uniclass.utenti.service.PersonaleTAService;
 import it.unisa.uniclass.utenti.service.UtenteService;
 import it.unisa.uniclass.testing.utils.TestUtils; // Utility per dati dinamici
 import jakarta.persistence.NoResultException;

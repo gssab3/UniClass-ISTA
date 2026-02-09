@@ -1,7 +1,6 @@
 package it.unisa.uniclass.testing.unit.utenti.service;
 
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.service.AccademicoService;
 import it.unisa.uniclass.utenti.service.dao.AccademicoRemote;
 import it.unisa.uniclass.testing.utils.TestUtils; // Import della utility
 import jakarta.persistence.NoResultException;
@@ -13,7 +12,6 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 class AccademicoServiceTest {

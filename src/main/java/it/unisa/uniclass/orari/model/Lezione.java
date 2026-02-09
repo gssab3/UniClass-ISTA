@@ -1,15 +1,11 @@
 package it.unisa.uniclass.orari.model;
 
-import it.unisa.uniclass.utenti.model.Docente;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
 import java.sql.Time;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.ArrayList;
-
-import static it.unisa.uniclass.orari.model.Lezione.*;
 
 /**
  * Rappresenta una lezione nel sistema di gestione orari.

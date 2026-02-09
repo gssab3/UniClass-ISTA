@@ -1,8 +1,6 @@
 package it.unisa.uniclass.testing.dao;
 
 import it.unisa.uniclass.utenti.model.PersonaleTA;
-import it.unisa.uniclass.utenti.service.PersonaleTAService;
-import it.unisa.uniclass.utenti.service.dao.PersonaleTARemote;
 
 public class TestPersonaleTAService extends PersonaleTAService {
     private PersonaleTARemote personaleTADao;

@@ -1,257 +1,80 @@
 package it.unisa.uniclass.utenti.model;
 
-
-import jakarta.persistence.Access;
-import jakarta.persistence.AccessType;
-import jakarta.persistence.MappedSuperclass;
-
+import jakarta.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDate;
 
-/**
- * Classe base per rappresentare un utente generico del sistema.
- * Questa classe è mappata come superclasse per l'uso con JPA.
- * Implementa l'interfaccia Serializable per consentire la serializzazione.
- * */
-@MappedSuperclass
-@Access(AccessType.FIELD)
+@Entity
+@Table(name = "utente")
+@Inheritance(strategy = InheritanceType.JOINED) // Strategia per due tabelle separate
+@NamedQueries({
+        @NamedQuery(name = "Utente.findAll", query = "SELECT u FROM Utente u"),
+        @NamedQuery(name = "Utente.findByEmail", query = "SELECT u FROM Utente u WHERE u.email = :email"),
+        @NamedQuery(name = "Utente.checkExists", query = "SELECT count(u) FROM Utente u WHERE u.email = :email"),
+        @NamedQuery(name = "Utente.login", query = "SELECT u FROM Utente u WHERE u.email = :email AND u.password = :password"),
+        @NamedQuery(name = "Utente.findByTipo", query = "SELECT u FROM Utente u JOIN Accademico a ON u.email = a.email WHERE TYPE(a) = :tipo")
+})
 public class Utente implements Serializable {
 
-    /**
-     * Nome dell'utente
-     */
-    //@ spec_public
-    //@ nullable
-    protected String nome;
+    private static final long serialVersionUID = 1L;
 
-    /**
-     * Cognome dell'utente
-     */
-    //@ spec_public
-    //@ nullable
-    protected String cognome;
+    @Id
+    @Column(name = "email", nullable = false, length = 100)
+    private String email;
 
-    /**
-     * Data di nascita dell'utente
-     */
-    //@ spec_public
-    //@ nullable
-    protected LocalDate dataNascita;
+    @Column(name = "password", nullable = false)
+    private String password;
 
-    /**
-     * Indirizzo email dell'utente
-     */
-    //@ spec_public
-    //@ nullable
-    protected String email;
+    @Column(name = "nome", nullable = false)
+    private String nome;
 
-    /**
-     * Password dell'utente
-     */
-    //@ spec_public
-    //@ nullable
-    protected String password;
+    @Column(name = "cognome", nullable = false)
+    private String cognome;
 
-    /**
-     * Tipo di utente
-     */
-    //@ spec_public
-    //@ nullable
-    protected Tipo tipo;
+    @Column(name = "data_nascita")
+    @Temporal(TemporalType.DATE)
+    private LocalDate dataNascita;
 
-    /**
-     * Costruttore di default.
-     * Inizializza un'istanza vuota di Utente.
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures true;
-      @*/
-    public Utente() {}
+    @Column(name = "telefono")
+    private String telefono;
 
-    /**
-     * Restituisce il nome dell'Utente
-     *
-     * @return il nome dell'utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == nome;
-      @*/
-    public /*@ nullable */ String getNome() {
-        return nome;
+    @Column(name = "iscrizione") // Data iscrizione account
+    private LocalDate iscrizione;
+
+    // Costruttore vuoto richiesto da JPA
+    public Utente() {
     }
 
-    /**
-     * Imposta il nome dell'utente.
-     *
-     * @param nome il nuovo nome dell'utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.nome;
-      @ ensures this.nome == nome;
-      @*/
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    /**
-     * Restituisce il cognome dell'utente.
-     *
-     * @return il cognome dell'utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == cognome;
-      @*/
-    public /*@ nullable */ String getCognome() {
-        return cognome;
-    }
-
-    /**
-     * Imposta il cognome dell'utente.
-     *
-     * @param cognome il nuovo cognome dell'utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.cognome;
-      @ ensures this.cognome == cognome;
-      @*/
-    public void setCognome(String cognome) {
-        this.cognome = cognome;
-    }
-
-    /**
-     * Restituisce la data di nascita dell'utente
-     *
-     * @return la data di nascita dell'Utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == dataNascita;
-      @*/
-    public /*@ nullable */ LocalDate getDataNascita() {
-        return dataNascita;
-    }
-
-    /**
-     * Imposta la data di nascita dell'utente.
-     *
-     * @param dataNascita la nuova data di nascita dell'utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.dataNascita;
-      @ ensures this.dataNascita == dataNascita;
-      @*/
-    public void setDataNascita(LocalDate dataNascita) {
-        this.dataNascita = dataNascita;
-    }
-
-    /**
-     * Restituisce l'indirizzo email dell'utente.
-     *
-     * @return l'email dell'utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == email;
-      @*/
-    public /*@ nullable */ String getEmail() {
-        return email;
-    }
-
-    /**
-     * Imposta l'indirizzo email dell'utente
-     *
-     * @param email il nuovo indirizzo email dell'utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.email;
-      @ ensures this.email == email;
-      @*/
-    public void setEmail(String email) {
+    public Utente(String email, String password, String nome, String cognome, LocalDate dataNascita, String telefono) {
         this.email = email;
-    }
-
-    /**
-     * Restituisce la password dell'utente
-     *
-     * @return la password dell'utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == password;
-      @*/
-    public /*@ nullable */ String getPassword() {
-        return password;
-    }
-
-    /**
-     * Imposta la password dell'utente.
-     *
-     * @param password la nuova password dell'utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.password;
-      @ ensures this.password == password;
-      @*/
-    public void setPassword(String password) {
         this.password = password;
+        this.nome = nome;
+        this.cognome = cognome;
+        this.dataNascita = dataNascita;
+        this.telefono = telefono;
+        this.iscrizione = LocalDate.now();
     }
 
-    /**
-     * Restituisce il tipo di utente
-     *
-     * @return il tipo di utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == tipo;
-      @*/
-    public /*@ nullable */ Tipo getTipo() {
-        return tipo;
-    }
+    // --- Getter e Setter ---
 
-    /**
-     * Imposta il tipo di utente.
-     *
-     * @param tipo il nuovo tipo di utente
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.tipo;
-      @ ensures this.tipo == tipo;
-      @*/
-    public void setTipo(Tipo tipo) {
-        this.tipo = tipo;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    /**
-     * Restituisce una rappresentazione in formato stringa dell'oggetto Utente.
-     *
-     * @return una stringa contenente le informazioni dell'Utente
-     * */
-    //@ skipesc
-    @Override
-    public String toString() {
-        return "Utente{" +
-                "nome='" + nome + '\'' +
-                ", cognome='" + cognome + '\'' +
-                ", dataNascita=" + dataNascita +
-                ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
-                '}';
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+
+    public String getCognome() { return cognome; }
+    public void setCognome(String cognome) { this.cognome = cognome; }
+
+    public LocalDate getDataNascita() { return dataNascita; }
+    public void setDataNascita(LocalDate dataNascita) { this.dataNascita = dataNascita; }
+
+    public String getTelefono() { return telefono; }
+    public void setTelefono(String telefono) { this.telefono = telefono; }
+
+    public LocalDate getIscrizione() { return iscrizione; }
+    public void setIscrizione(LocalDate iscrizione) { this.iscrizione = iscrizione; }
 }

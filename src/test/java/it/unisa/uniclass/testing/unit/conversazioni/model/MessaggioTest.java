@@ -3,8 +3,6 @@ package it.unisa.uniclass.testing.unit.conversazioni.model;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Docente;
-import it.unisa.uniclass.utenti.model.Studente;
 import it.unisa.uniclass.orari.model.CorsoLaurea;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

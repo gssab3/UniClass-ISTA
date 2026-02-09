@@ -1,13 +1,10 @@
 package it.unisa.uniclass.orari.model;
 
-import it.unisa.uniclass.utenti.model.Docente;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import static it.unisa.uniclass.orari.model.Corso.*;
 
 /**
  * Classe che rappresenta un corso universitario.

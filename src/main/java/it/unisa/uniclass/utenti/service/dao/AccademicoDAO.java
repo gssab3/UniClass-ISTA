@@ -1,73 +1,55 @@
 package it.unisa.uniclass.utenti.service.dao;
 
 import it.unisa.uniclass.utenti.model.Accademico;
+import it.unisa.uniclass.utenti.model.Ruolo;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.*;
-
 import java.util.List;
 
 @Stateless(name = "AccademicoDAO")
 public class AccademicoDAO implements AccademicoRemote {
 
-    @PersistenceContext(unitName = "DBUniClassPU")
-    private EntityManager emUniclass;
+    @PersistenceContext(unitName = "uniClassPu")
+    private EntityManager em;
 
     @Override
-    public Accademico trovaAccademicoUniClass(String matricola){
-        try {
-            TypedQuery<Accademico> query = emUniclass.createNamedQuery(Accademico.TROVA_ACCADEMICO, Accademico.class);
-            query.setParameter("matricola", matricola);
-            return query.getSingleResult();
-        } catch (jakarta.persistence.PersistenceException e) {
-            return null;
+    public void create(Accademico accademico) {
+        em.persist(accademico);
+    }
+
+    @Override
+    public void update(Accademico accademico) {
+        em.merge(accademico);
+    }
+
+    @Override
+    public void remove(Accademico accademico) {
+        if (!em.contains(accademico)) {
+            accademico = em.merge(accademico);
         }
-    }
-
-    @Override
-    public List<Accademico> trovaTuttiUniClass() {
-        TypedQuery<Accademico> query = emUniclass.createNamedQuery(Accademico.TROVA_TUTTI, Accademico.class);
-        return query.getResultList();
-    }
-
-    @Override
-    public Accademico trovaEmailUniClass(String email) {
-        try {
-            TypedQuery<Accademico> query = emUniclass.createNamedQuery(Accademico.TROVA_EMAIL, Accademico.class);
-            query.setParameter("email", email);
-            return query.getSingleResult();
-        } catch (jakarta.persistence.NoResultException e) {
-            return null;
-        }
-    }
-
-    @Override
-    public List<Accademico> trovaAttivati(boolean attivazione) {
-        TypedQuery<Accademico> query = emUniclass.createNamedQuery(Accademico.TROVA_ATTIVATI, Accademico.class);
-        query.setParameter("attivato", attivazione);
-        return query.getResultList();
+        em.remove(accademico);
     }
 
 
 
     @Override
-    public void aggiungiAccademico(Accademico accademico) {
-        emUniclass.merge(accademico);
+    public List<Accademico> findByRole(Ruolo ruolo) {
+        return em.createNamedQuery("Accademico.findByRuolo", Accademico.class)
+                .setParameter("ruolo", ruolo)
+                .getResultList();
     }
 
     @Override
-    public void rimuoviAccademico(Accademico accademico) {
-        emUniclass.remove(accademico);
+    public List<Accademico> findByRuoloAndDipartimento(Ruolo ruolo, String dipartimento) {
+        return em.createNamedQuery("Accademico.findByRuoloAndDip", Accademico.class)
+                .setParameter("ruolo", ruolo)
+                .setParameter("dipartimento", dipartimento)
+                .getResultList();
     }
 
     @Override
-    public List<String> retrieveEmail() {
-        TypedQuery<String> query = emUniclass.createNamedQuery(Accademico.RETRIEVE_EMAIL, String.class);
-        return query.getResultList();
-    }
-
-    @Override
-    public void cambiaAttivazione(Accademico accademico, boolean attivazione) {
-        accademico.setAttivato(attivazione);
-        emUniclass.merge(accademico);
+    public List<Accademico> findAll() {
+        return em.createNamedQuery("Accademico.findAll", Accademico.class)
+                .getResultList();
     }
 }

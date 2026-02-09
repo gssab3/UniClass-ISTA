@@ -6,7 +6,6 @@ import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.orari.model.CorsoLaurea;
-import it.unisa.uniclass.utenti.service.AccademicoService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

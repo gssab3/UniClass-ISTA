@@ -1,13 +1,8 @@
 package it.unisa.uniclass.testing.unit.utenti.service;
 
-import it.unisa.uniclass.common.exceptions.AlreadyExistentUserException;
 import it.unisa.uniclass.common.exceptions.IncorrectUserSpecification;
 import it.unisa.uniclass.common.exceptions.NotFoundUserException;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Docente;
-import it.unisa.uniclass.utenti.service.DocenteService;
-import it.unisa.uniclass.utenti.service.AccademicoService;
-import it.unisa.uniclass.utenti.service.dao.DocenteRemote;
 import jakarta.persistence.NoResultException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

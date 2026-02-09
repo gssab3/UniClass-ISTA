@@ -4,7 +4,6 @@ import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.conversazioni.service.dao.MessaggioDAO;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Studente;
 import it.unisa.uniclass.orari.model.CorsoLaurea;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;

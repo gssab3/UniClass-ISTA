@@ -1,12 +1,10 @@
 package it.unisa.uniclass.testing.unit.utenti.model;
 
 import it.unisa.uniclass.orari.model.CorsoLaurea;
-import it.unisa.uniclass.utenti.model.Coordinatore;
 import it.unisa.uniclass.utenti.model.Tipo;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 

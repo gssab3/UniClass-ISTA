@@ -1,8 +1,6 @@
 package it.unisa.uniclass.testing.benchmark.utenti.JMH;
 
 import it.unisa.uniclass.testing.benchmark.utenti.mocks.MockDocenteDAO;
-import it.unisa.uniclass.utenti.model.Docente;
-import it.unisa.uniclass.utenti.service.DocenteService;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 

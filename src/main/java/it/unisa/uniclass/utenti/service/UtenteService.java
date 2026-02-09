@@ -1,100 +1,96 @@
 package it.unisa.uniclass.utenti.service;
 
+import it.unisa.uniclass.common.exceptions.AlreadyExistentUserException;
 import it.unisa.uniclass.common.exceptions.AuthenticationException;
+import it.unisa.uniclass.common.exceptions.NotFoundUserException;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.PersonaleTA;
+import it.unisa.uniclass.utenti.model.Ruolo;
 import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.dao.AccademicoDAO;
+import it.unisa.uniclass.utenti.service.dao.AccademicoRemote;
+import it.unisa.uniclass.utenti.service.dao.UtenteRemote;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
-import jakarta.persistence.NoResultException;
 
-/**
- * Classe di servizio per la gestione delle operazioni relative agli utenti.
- * Fornisce metodi per autenticare e recuperare utenti.
- */
+import java.util.List;
+
 @Stateless
 public class UtenteService {
 
-    // Campi per il supporto ai test (Lazy Loading Pattern)
-    private PersonaleTAService personaleTAService;
-    private AccademicoService accademicoService;
+    @EJB(beanName = "UtenteDAO")
+    private UtenteRemote utenteDAO;
 
-    // Setter per Dependency Injection (usati SOLO dai Test per iniettare i Mock)
-    public void setPersonaleTAService(PersonaleTAService personaleTAService) {
-        this.personaleTAService = personaleTAService;
-    }
+    @EJB(beanName = "AccademicoDAO")
+    private AccademicoRemote accademicoDAO;
 
-    public void setAccademicoService(AccademicoService accademicoService) {
-        this.accademicoService = accademicoService;
-    }
+    // --- AUTENTICAZIONE ---
 
-    // Metodi Getter Helper con logica Lazy Loading
-    // Se il service è nullo (produzione), lo istanzia col costruttore reale (JNDI).
-    // Se è già settato (test), restituisce il mock.
-    protected PersonaleTAService getPersonaleTAService() {
-        if (personaleTAService == null) {
-            personaleTAService = new PersonaleTAService();
+    public Utente login(String email, String password) throws AuthenticationException {
+        Utente u = utenteDAO.login(email, password);
+        if (u == null) {
+            throw new AuthenticationException("Credenziali non valide.");
         }
-        return personaleTAService;
+        return u;
     }
 
-    protected AccademicoService getAccademicoService() {
-        if (accademicoService == null) {
-            accademicoService = new AccademicoService();
+    // --- GESTIONE UTENTI GENERICI (Ex Personale TA) ---
+
+    /**
+     * Registra un utente generico (es. Personale Amministrativo).
+     * Non avendo un ruolo accademico, viene persistito nella tabella Utente.
+     */
+    public void registraUtente(Utente utente) throws AlreadyExistentUserException {
+        if (utenteDAO.findByEmail(utente.getEmail()) != null) {
+            throw new AlreadyExistentUserException("Utente già esistente: " + utente.getEmail());
         }
-        return accademicoService;
+        // Qui potresti settare un 'tipo' di default se il DB lo richiede, es:
+        // utente.setTipo("AMMINISTRATIVO");
+        utenteDAO.create(utente);
+    }
+
+    // --- GESTIONE ACCADEMICI (Studenti, Docenti, Coordinatori) ---
+
+    public void registraAccademico(Accademico accademico, Ruolo ruolo) throws AlreadyExistentUserException {
+        if (utenteDAO.findByEmail(accademico.getEmail()) != null) {
+            throw new AlreadyExistentUserException("Email già presente nel sistema.");
+        }
+
+        // Impostiamo il ruolo (enum Ruolo)
+        accademico.setRuolo(ruolo);
+
+        // Salviamo tramite il DAO specifico che gestisce la tabella estesa
+        accademicoDAO.create(accademico);
+    }
+
+    // --- METODI DI RICERCA ---
+
+    public Utente getUtenteByEmail(String email) throws NotFoundUserException {
+        Utente u = utenteDAO.findByEmail(email);
+        if (u == null) {
+            throw new NotFoundUserException("Utente non trovato.");
+        }
+        return u;
     }
 
     /**
-     * Recupera un utente dal database utilizzando la sua email e password.
-     *
-     * @param email L'email dell'utente da cercare.
-     * @param password La password dell'utente da cercare.
-     * @return L'oggetto Utente corrispondente all'email e alla password.
-     * @throws AuthenticationException Se la password è errata.
+     * Restituisce tutti gli accademici filtrati per ruolo.
+     * Utile per le liste (es. "Mostra tutti gli Studenti").
      */
-    public Utente retrieveByUserAndPassword(String email, String password) {
-        try {
-            // MODIFICA: Utilizzo dei metodi getter helper invece di 'new' diretto
-            PersonaleTA personaleTA = (PersonaleTA) getPersonaleTAService().trovaEmail(email);
-            Accademico accademico = (Accademico) getAccademicoService().trovaEmailUniClass(email);
-            
-            if (personaleTA != null) {
-                if (personaleTA.getPassword().equals(password)) {
-                    return personaleTA;
-                } else {
-                    throw new AuthenticationException("Password errata");
-                }
-            } else if (accademico != null) {
-                if (accademico.getPassword().equals(password)) {
-                    return accademico;
-                } else {
-                    throw new AuthenticationException("Password errata");
-                }
-            }
-            return null;
-        } catch (NoResultException e) {
-            return null;
-        }
+    public List<Accademico> getAccademiciPerRuolo(Ruolo ruolo) {
+        return accademicoDAO.findByRole(ruolo);
     }
 
-    /**
-     * Recupera un utente dal database utilizzando la sua email.
-     *
-     * @param email L'email dell'utente da cercare.
-     * @return L'oggetto Utente corrispondente all'email.
-     */
-    public Utente retrieveByEmail(String email) {
-        // MODIFICA: Utilizzo dei metodi getter helper invece di 'new' diretto
-        PersonaleTA personaleTA = (PersonaleTA) getPersonaleTAService().trovaEmail(email);
-        Accademico accademico = (Accademico) getAccademicoService().trovaEmailUniClass(email);
-        
-        if (personaleTA != null) {
-            return personaleTA;
-        } else if (accademico != null) {
-            return accademico;
+    public List<Utente> getTuttiGliUtenti() {
+        return utenteDAO.findAll();
+    }
+
+    // --- UPDATE ---
+
+    public void aggiornaUtente(Utente utente) {
+        // Se l'oggetto è un'istanza di Accademico, usiamo il suo DAO per fare il merge corretto di tutti i campi
+        if (utente instanceof Accademico) {
+            accademicoDAO.update((Accademico) utente);
+        } else {
+            utenteDAO.update(utente);
         }
-        return null;
     }
 }

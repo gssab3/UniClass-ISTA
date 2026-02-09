@@ -1,7 +1,6 @@
 package it.unisa.uniclass.testing.unit.utenti.service.dao;
 
 import it.unisa.uniclass.orari.model.CorsoLaurea;
-import it.unisa.uniclass.utenti.model.Studente;
 import it.unisa.uniclass.utenti.service.dao.StudenteDAO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class StudenteDAOTest {

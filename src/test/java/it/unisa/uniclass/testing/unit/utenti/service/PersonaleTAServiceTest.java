@@ -1,8 +1,6 @@
 package it.unisa.uniclass.testing.unit.utenti.service;
 
 import it.unisa.uniclass.utenti.model.PersonaleTA;
-import it.unisa.uniclass.utenti.service.PersonaleTAService;
-import it.unisa.uniclass.utenti.service.dao.PersonaleTARemote;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;

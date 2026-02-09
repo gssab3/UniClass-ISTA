@@ -1,8 +1,6 @@
 package it.unisa.uniclass.testing.benchmark.utenti.JMH;
 
 import it.unisa.uniclass.testing.benchmark.utenti.mocks.MockCoordinatoreDAO;
-import it.unisa.uniclass.utenti.model.Coordinatore;
-import it.unisa.uniclass.utenti.service.CoordinatoreService;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 

@@ -4,7 +4,6 @@ import it.unisa.uniclass.common.security.CredentialSecurity;
 import it.unisa.uniclass.common.security.PasswordGenerator;
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Tipo;
-import it.unisa.uniclass.utenti.service.AccademicoService;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;

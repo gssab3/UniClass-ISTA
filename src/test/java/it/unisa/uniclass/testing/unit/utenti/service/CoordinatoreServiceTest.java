@@ -1,13 +1,8 @@
 package it.unisa.uniclass.testing.unit.utenti.service;
 
 import it.unisa.uniclass.common.exceptions.AlreadyExistentUserException;
-import it.unisa.uniclass.common.exceptions.IncorrectUserSpecification;
 import it.unisa.uniclass.common.exceptions.NotFoundUserException;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Coordinatore;
-import it.unisa.uniclass.utenti.service.AccademicoService;
-import it.unisa.uniclass.utenti.service.CoordinatoreService;
-import it.unisa.uniclass.utenti.service.dao.CoordinatoreRemote;
 import jakarta.persistence.NoResultException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,8 +13,6 @@ import org.mockito.MockitoAnnotations;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
