@@ -1,4 +1,4 @@
-package it.unisa.uniclass.testing.benchmark.orari;
+package it.unisa.uniclass.testing.benchmark.jmh.orari;
 
 import it.unisa.uniclass.orari.model.Aula;
 import it.unisa.uniclass.orari.service.AulaService;
