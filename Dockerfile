@@ -3,9 +3,9 @@ FROM eclipse-temurin:21-jdk
 
 
 # Non essendoci delle build predefinite con TomEE 10, ne prendiamo una noi online
-RUN curl -L https://downloads.apache.org/tomee/tomee-10.1.2/apache-tomee-10.1.2-microprofile.tar.gz -o /tmp/tomee.tar.gz \
+RUN curl -L https://downloads.apache.org/tomee/tomee-10.1.3/apache-tomee-10.1.3-microprofile.tar.gz -o /tmp/tomee.tar.gz \
     && tar -xzf /tmp/tomee.tar.gz -C /usr/local/ \
-    && mv /usr/local/apache-tomee-microprofile-10.1.2 /usr/local/tomee \
+    && mv /usr/local/apache-tomee-microprofile-10.1.3 /usr/local/tomee \
     && rm /tmp/tomee.tar.gz
 
 
