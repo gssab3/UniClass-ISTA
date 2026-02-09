@@ -1,4 +1,4 @@
-package it.unisa.uniclass.testing.benchmark.utenti.mocks;
+package it.unisa.uniclass.testing.benchmark.jmh.utenti.mocks;
 
 import java.util.*;
 
@@ -18,21 +18,33 @@ public class MockCoordinatoreDAO implements CoordinatoreRemote {
 
     @Override
     public Coordinatore trovaCoordinatoreUniClass(String matricola) {
+        if (coordinatoreDaRitornare != null) {
+            return coordinatoreDaRitornare;
+        }
         return byMatricola.get(matricola);
     }
 
     @Override
     public Coordinatore trovaCoordinatoreEmailUniclass(String email) {
+        if (coordinatoreDaRitornare != null) {
+            return coordinatoreDaRitornare;
+        }
         return byEmail.get(email);
     }
 
     @Override
     public List<Coordinatore> trovaCoordinatoriCorsoLaurea(String nomeCorso) {
+        if (coordinatoreDaRitornare != null) {
+            return Collections.singletonList(coordinatoreDaRitornare);
+        }
         return byCorso.getOrDefault(nomeCorso, Collections.emptyList());
     }
 
     @Override
     public List<Coordinatore> trovaTutti() {
+        if (coordinatoreDaRitornare != null) {
+            return Collections.singletonList(coordinatoreDaRitornare);
+        }
         return new ArrayList<>(byEmail.values());
     }
 

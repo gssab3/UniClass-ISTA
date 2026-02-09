@@ -1,12 +1,17 @@
-package it.unisa.uniclass.testing.benchmark.utenti.JMH;
+package it.unisa.uniclass.testing.benchmark.jmh.utenti.JMH;
 
-import it.unisa.uniclass.testing.benchmark.utenti.mocks.MockAccademicoDAO;
-import it.unisa.uniclass.testing.benchmark.utenti.mocks.MockPersonaleTADAO;
+import it.unisa.uniclass.testing.benchmark.jmh.utenti.mocks.MockAccademicoDAO;
+import it.unisa.uniclass.testing.benchmark.jmh.utenti.mocks.MockPersonaleTADAO;
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.PersonaleTA;
 import it.unisa.uniclass.utenti.service.UtenteService;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.results.format.ResultFormatType;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
 
 import java.util.concurrent.TimeUnit;
 
@@ -28,6 +33,24 @@ public class UtenteServiceBenchmark {
 
     private static final String EMAIL_INESISTENTE = "inesistente@unisa.it";
     private static final String PASS_ERRATA = "errata";
+
+    public static void main(String[] args) throws RunnerException {
+        Options opt = new OptionsBuilder()
+                .include(UtenteServiceBenchmark.class.getSimpleName())
+                .forks(3)
+                .warmupIterations(10)
+                .measurementIterations(10)
+                .mode(Mode.All)
+                .warmupTime(org.openjdk.jmh.runner.options.TimeValue.seconds(1))
+                .measurementTime(org.openjdk.jmh.runner.options.TimeValue.seconds(1))
+                .timeUnit(TimeUnit.MICROSECONDS)
+                .resultFormat(ResultFormatType.JSON)
+                .result("jmh-result-utente.json")
+                .jvmArgs("-Djmh.ignoreLock=true")
+                .build();
+
+        new Runner(opt).run();
+    }
 
     @Setup(Level.Trial)
     public void setup() {

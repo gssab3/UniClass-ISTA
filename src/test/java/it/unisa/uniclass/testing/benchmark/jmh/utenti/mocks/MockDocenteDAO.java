@@ -1,4 +1,4 @@
-package it.unisa.uniclass.testing.benchmark.utenti.mocks;
+package it.unisa.uniclass.testing.benchmark.jmh.utenti.mocks;
 
 import java.util.*;
 
@@ -26,21 +26,33 @@ public class MockDocenteDAO implements DocenteRemote {
 
     @Override
     public Docente trovaDocenteUniClass(String matricola) {
+        if (docenteDaRitornare != null) {
+            return docenteDaRitornare;
+        }
         return byMatricola.get(matricola);
     }
 
     @Override
     public Docente trovaEmailUniClass(String email) {
+        if (docenteDaRitornare != null) {
+            return docenteDaRitornare;
+        }
         return byEmail.get(email);
     }
 
     @Override
     public List<Docente> trovaDocenteCorsoLaurea(String nomeCorso) {
+        if (docenteDaRitornare != null) {
+            return Collections.singletonList(docenteDaRitornare);
+        }
         return byCorso.getOrDefault(nomeCorso, Collections.emptyList());
     }
 
     @Override
     public List<Docente> trovaTuttiUniClass() {
+        if (docenteDaRitornare != null) {
+            return Collections.singletonList(docenteDaRitornare);
+        }
         return new ArrayList<>(byMatricola.values());
     }
 

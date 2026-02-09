@@ -1,4 +1,4 @@
-package it.unisa.uniclass.testing.benchmark.utenti.mocks;
+package it.unisa.uniclass.testing.benchmark.jmh.utenti.mocks;
 
 import it.unisa.uniclass.utenti.model.PersonaleTA;
 
@@ -23,11 +23,19 @@ public class MockPersonaleTADAO implements PersonaleTARemote {
 
     @Override
     public PersonaleTA trovaEmail(String email) {
+        if (personaleDaRitornare != null && email.equals(personaleDaRitornare.getEmail())) {
+            return personaleDaRitornare;
+        }
         return byEmail.getOrDefault(email, null);
     }
 
     @Override
     public PersonaleTA trovaEmailPassword(String email, String password) {
+        if (personaleDaRitornare != null &&
+            email.equals(personaleDaRitornare.getEmail()) &&
+            Objects.equals(password, personaleDaRitornare.getPassword())) {
+            return personaleDaRitornare;
+        }
         PersonaleTA p = byEmail.get(email);
         if (p != null && Objects.equals(p.getPassword(), password)) {
             return p;
@@ -42,6 +50,9 @@ public class MockPersonaleTADAO implements PersonaleTARemote {
 
     @Override
     public List<PersonaleTA> trovaTutti() {
+        if (personaleDaRitornare != null) {
+            return Collections.singletonList(personaleDaRitornare);
+        }
         return new ArrayList<>(byEmail.values());
     }
 

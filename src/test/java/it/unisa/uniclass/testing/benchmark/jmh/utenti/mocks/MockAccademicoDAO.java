@@ -1,4 +1,4 @@
-package it.unisa.uniclass.testing.benchmark.utenti.mocks;
+package it.unisa.uniclass.testing.benchmark.jmh.utenti.mocks;
 
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.service.dao.AccademicoRemote;
