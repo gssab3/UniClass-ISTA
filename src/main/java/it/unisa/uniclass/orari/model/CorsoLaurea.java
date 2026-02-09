@@ -1,10 +1,10 @@
 package it.unisa.uniclass.orari.model;
 
+import it.unisa.uniclass.utenti.model.Accademico;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -79,12 +79,13 @@ public class CorsoLaurea implements Serializable {
     private List<AnnoDidattico> anniDidattici = new ArrayList<>();
 
     /**
-     * Lista degli studenti iscritti al corso di laurea.
+     * Lista degli accademici iscritti al corso di laurea.
+     * Relazione uno-a-molti: un corso di laurea può avere più accademici iscritti.
      */
     @OneToMany(mappedBy = "corsoLaurea", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     //@ spec_public
     //@ nullable
-    private List<Studente> studenti = new ArrayList<>();
+    private List<Accademico> accademici = new ArrayList<>();
 
     /**
      * Costruttore con il nome del corso di laurea
@@ -252,29 +253,29 @@ public class CorsoLaurea implements Serializable {
     }
 
     /**
-     * Restituisce la lista degli studenti iscritti al corso di laurea.
+     * Restituisce la lista degli accademici iscritti al corso di laurea.
      *
-     * @return Lista degli studenti.
+     * @return Lista degli accademici.
      */
     /*@ public normal_behavior
       @ assignable \nothing;
-      @ ensures \result == studenti;
+      @ ensures \result == accademici;
       @*/
-    public /*@ nullable */ Collection<Studente> getStudenti() {
-        return studenti;
+    public /*@ nullable */ List<Accademico> getAccademici() {
+        return accademici;
     }
 
     /**
-     * Imposta la lista degli studenti iscritti al corso di laurea.
+     * Imposta la lista degli accademici iscritti al corso di laurea.
      *
-     * @param studenti Lista degli studenti da associare.
+     * @param accademici Lista degli accademici da associare.
      */
     /*@ public normal_behavior
-      @ assignable this.studenti;
-      @ ensures this.studenti == studenti;
+      @ assignable this.accademici;
+      @ ensures this.accademici == accademici;
       @*/
-    public void setStudenti(List<Studente> studenti) {
-        this.studenti = studenti;
+    public void setAccademici(List<Accademico> accademici) {
+        this.accademici = accademici;
     }
 
     /**

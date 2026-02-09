@@ -1,5 +1,6 @@
 package it.unisa.uniclass.orari.model;
 
+import it.unisa.uniclass.utenti.model.Accademico;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -84,44 +85,33 @@ public class Lezione implements Serializable {
      * Identificativo univoco per Lezione
      */
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    //@ spec_public
-    //@ nullable
     private Long id;
 
     /**
      * Lista dei docenti che presenziano la lezione
      */
     @ManyToMany(mappedBy = "lezioni")
-    //@ spec_public
-    //@ nullable
-    private List<Docente> docenti = new ArrayList<>();
+    private List<Accademico> accademici = new ArrayList<>();
 
     /**
      * Semestre in cui è presente la lezione
      */
-    //@ spec_public
     private int semestre; //1 o 2
 
     /**
      * Ora di Inizio della Lezione
      */
-    //@ spec_public
-    //@ nullable
     private Time oraInizio;
 
     /**
      * Ora di Fine della lezione
      */
-    //@ spec_public
-    //@ nullable
     private Time oraFine;
 
     /**
      * Giorno della settimana in cui si sostiene la lezione (Tramite Enumeratore)
      */
     @Enumerated(EnumType.STRING)
-    //@ spec_public
-    //@ nullable
     private Giorno giorno;
 
     /**
@@ -129,8 +119,6 @@ public class Lezione implements Serializable {
      */
     @ManyToOne
     @JoinColumn(name = "corso_id")
-    //@ spec_public
-    //@ nullable
     private Corso corso;
 
     /**
@@ -138,8 +126,6 @@ public class Lezione implements Serializable {
      */
     @ManyToOne
     @JoinColumn(name = "resto_id")
-    //@ spec_public
-    //@ nullable
     private Resto resto;
 
     /**
@@ -147,19 +133,14 @@ public class Lezione implements Serializable {
      */
     @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "aula_id")
-    //@ spec_public
-    //@ nullable
     private Aula aula;
+
+    // --- Costruttori ---
 
     /**
      *
      * Costruttore predefinito.
      * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures true;
-      @*/
     public Lezione() {}
 
     /**
@@ -173,18 +154,6 @@ public class Lezione implements Serializable {
      * @param corso Il corso associato.
      * @param aula L'aula della lezione
      * */
-    /*@
-      @ public normal_behavior
-      @ assignable \everything;
-      @ ensures this.semestre == semestre;
-      @ ensures this.oraInizio == oraInizio;
-      @ ensures this.oraFine == oraFine;
-      @ ensures this.giorno == giorno;
-      @ ensures this.resto == resto;
-      @ ensures this.corso == corso;
-      @ ensures this.aula == aula;
-      @ ensures true;
-      @*/
     public Lezione(int semestre, Time oraInizio, Time oraFine, Giorno giorno, Resto resto, Corso corso, Aula aula) {
         this.oraInizio = oraInizio;
         this.semestre = semestre;
@@ -195,243 +164,70 @@ public class Lezione implements Serializable {
         this.aula = aula;
     }
 
-    /**
-     * Ottiene la lista di docenti associati alla lezione.
-     *
-     * @return Lista di docenti.
-     */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == docenti;
-      @*/
-    public /*@ nullable */ List<Docente> getDocenti() {
-        return docenti;
+    // --- Getters e Setters ---
+
+
+    public List<Accademico> getAccademici() {
+        return accademici;
+    }
+    public void setAccademici(List<Accademico> accademici) {
+        this.accademici = accademici;
     }
 
-    /**
-     * Imposta la lista di docenti associati alla lezione.
-     *
-     * @param docenti Lista di docenti.
-     */
-    /*@
-      @ public normal_behavior
-      @ assignable this.docenti;
-      @ ensures this.docenti == docenti;
-      @*/
-    public void setDocenti(List<Docente> docenti) {
-        this.docenti = docenti;
-    }
-
-    /**
-     * Ottiene il semestre in cui è presente della lezione.
-     *
-     * @return semestre della lezione
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == semestre;
-      @*/
     public int getSemestre() {
         return semestre;
     }
-
-    /**Imposta il semestre in cui è presente la lezione.
-     *
-     * @param semestre Semestre in cui è presente la lezione.
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.semestre;
-      @ ensures this.semestre == semestre;
-      @*/
     public void setSemestre(int semestre) {
         this.semestre = semestre;
     }
 
-    /**
-     * Ottiene l'ora di inizio della lezione.
-     *
-     * @return ora dell'inizio della lezione
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == oraInizio;
-     */
-    public /*@ nullable */ Time getOraInizio() {
+    public Time getOraInizio() {
         return oraInizio;
     }
-
-    /**Imposta l'ora di inizio della lezione.
-     *
-     * @param oraInizio L'ora di inzio della lezione.
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.oraInizio;
-      @ ensures this.oraInizio == oraInizio;
-     */
     public void setOraInizio(Time oraInizio) {
         this.oraInizio = oraInizio;
     }
 
-    /**
-     * Ottiene l'ora di fine della lezione.
-     *
-     * @return ora di fine della lezione
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == oraFine;
-     */
-    public /*@ nullable */ Time getOraFine() {
+    public Time getOraFine() {
         return oraFine;
     }
-
-    /**Imposta l'ora di fine della lezione.
-     *
-     * @param oraFine L'ora di inzio della lezione.
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.oraFine;
-      @ ensures this.oraFine == oraFine;
-     */
     public void setOraFine(Time oraFine) {
         this.oraFine = oraFine;
     }
 
-    /**
-     * Ottiene il giorno della lezione.
-     *
-     * @return giorno della lezione
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == giorno;
-      @*/
-    public /*@ nullable */ Giorno getGiorno() {
+    public Giorno getGiorno() {
         return giorno;
     }
-
-    /**Imposta il giorno della lezione.
-     *
-     * @param giorno Giorno della lezione.
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.giorno;
-      @ ensures this.giorno == giorno;
-      @*/
     public void setGiorno(Giorno giorno) {
         this.giorno = giorno;
     }
 
-    /**
-     * Ottiene il resto in cui è presente la lezione.
-     *
-     * @return resto in cui è presente la lezione
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == resto;
-      @*/
-    public /*@ nullable */ Resto getResto() {
+    public Resto getResto() {
         return resto;
     }
-
-    /**Imposta il resto in cui è presente la lezione.
-     *
-     * @param resto Resto in cui è presente la lezione.
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.resto;
-      @ ensures this.resto == resto;
-      @*/
     public void setResto(Resto resto) {
         this.resto = resto;
     }
 
-    /**
-     * Ottiene l'id della lezione.
-     *
-     * @return id della lezione
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == id;
-      @*/
-    public /*@ nullable */ Long getId() {
+    public Long getId() {
         return id;
     }
 
-    /**
-     * Ottiene il corso in cui è presente la lezione.
-     *
-     * @return il corso in cui è presente la lezione
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == corso;
-      @*/
-    public /*@ nullable */ Corso getCorso() {
-        return corso;
-    }
-
-    /**
-     * Ottiene l'aula della lezione.
-     *
-     * @return aula della lezione
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == aula;
-     */
-    public /*@ nullable */ Aula getAula() {
-        return aula;
-    }
-
-    /**Imposta l'aula in cui è presente la lezione.
-     *
-     * @param aula Aula in cui è presente la lezione.
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.aula;
-      @ ensures this.aula == aula;
-      @*/
-    public void setAula(Aula aula) {
-        this.aula = aula;
-    }
-
-    /**Imposta il corso in cui è presente la lezione.
-     *
-     * @param corso Corso in cui è presente la lezione.
-     * */
-    /*@
-      @ public normal_behavior
-      @ assignable this.corso;
-      @ ensures this.corso == corso;
-      @*/
+    public Corso getCorso() {return corso;}
     public void setCorso(Corso corso) {
         this.corso = corso;
     }
 
-    /**
-     * Restituisce una rappresentazione testuale dell'oggetto.
-     *
-     * @return Stringa rappresentativa della lezione.
-     * */
-    //@ skipesc
+
+    public Aula getAula() {
+        return aula;
+    }
+    public void setAula(Aula aula) {
+        this.aula = aula;
+    }
+
+
+
     @Override
     public String toString() {
         return "Lezione{" +

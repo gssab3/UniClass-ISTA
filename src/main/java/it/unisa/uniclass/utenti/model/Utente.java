@@ -18,6 +18,8 @@ public class Utente implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    // --- Attributi comuni a tutti gli utenti ---
+
     @Id
     @Column(name = "email", nullable = false, length = 100)
     private String email;
@@ -38,21 +40,30 @@ public class Utente implements Serializable {
     @Column(name = "telefono")
     private String telefono;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo", nullable = false)
+    private Tipo tipo;
+
     @Column(name = "iscrizione") // Data iscrizione account
     private LocalDate iscrizione;
+
+
+    // --- Costruttori ---
+
 
     // Costruttore vuoto richiesto da JPA
     public Utente() {
     }
 
-    public Utente(String email, String password, String nome, String cognome, LocalDate dataNascita, String telefono) {
+    public Utente(String email, String password, String nome, String cognome, LocalDate dataNascita, String telefono, LocalDate iscrizione, Tipo tipo) {
         this.email = email;
         this.password = password;
         this.nome = nome;
         this.cognome = cognome;
         this.dataNascita = dataNascita;
         this.telefono = telefono;
-        this.iscrizione = LocalDate.now();
+        this.iscrizione = iscrizione;
+        this.tipo = tipo;
     }
 
     // --- Getter e Setter ---
@@ -77,4 +88,7 @@ public class Utente implements Serializable {
 
     public LocalDate getIscrizione() { return iscrizione; }
     public void setIscrizione(LocalDate iscrizione) { this.iscrizione = iscrizione; }
+
+    public Tipo getTipo() {return tipo;}
+    public void setTipo(Tipo tipo) {this.tipo = tipo;}
 }

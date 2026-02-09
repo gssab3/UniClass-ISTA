@@ -9,7 +9,7 @@ import java.util.List;
 @Stateless(name = "AccademicoDAO")
 public class AccademicoDAO implements AccademicoRemote {
 
-    @PersistenceContext(unitName = "uniClassPu")
+    @PersistenceContext(unitName = "DBUniClassPU")
     private EntityManager em;
 
     @Override
@@ -29,8 +29,6 @@ public class AccademicoDAO implements AccademicoRemote {
         }
         em.remove(accademico);
     }
-
-
 
     @Override
     public List<Accademico> findByRole(Ruolo ruolo) {

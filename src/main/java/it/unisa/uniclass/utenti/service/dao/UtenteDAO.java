@@ -11,7 +11,7 @@ import java.util.List;
 @Stateless(name = "UtenteDAO")
 public class UtenteDAO implements UtenteRemote {
 
-    @PersistenceContext(unitName = "uniClassPu")
+    @PersistenceContext(unitName = "DBUniClassPU")
     private EntityManager em;
 
     @Override

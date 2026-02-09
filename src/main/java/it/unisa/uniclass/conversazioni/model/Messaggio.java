@@ -67,23 +67,20 @@ public class Messaggio implements Serializable {
     public static final String TROVA_TOPIC = "Messaggio.trovaTopic";
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    //@ spec_public
-    //@ nullable
     private Long id;
 
     /**
-     * Data e ore di creazione del messaggio.
+     * Data e ora di creazione del messaggio.
+     * Il valore di default viene impostato automaticamente tramite il metodo prePersist.
      */
-    //@ spec_public
-    //@ nullable
+    @Column(name = "data_time", nullable = false)
     private LocalDateTime dateTime;
 
     /**
-     * Corpo del messaggio. Non può essere null.
-     * */
-    @Column(nullable = false)
-    //@ spec_public
-    //@ nullable
+     * Testo del messaggio, ovvero il contenuto del messaggio stesso.
+     * E' un campo obbligatorio.
+     */
+    @Column(name = "body", nullable = false, columnDefinition = "TEXT")
     private String body;
 
     /**
@@ -133,10 +130,6 @@ public class Messaggio implements Serializable {
      *
      * @param destinatario Il destinatario da impostare.
      * */
-    /*@ public normal_behavior
-      @ assignable this.destinatario;
-      @ ensures this.destinatario == destinatario;
-      @*/
     public void setDestinatario(Accademico destinatario) {
         this.destinatario = destinatario;
     }
@@ -146,12 +139,7 @@ public class Messaggio implements Serializable {
      *
      * @return L'autore.
      * */
-    /*@
-      @ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == autore;
-      @*/
-    public /*@ nullable */ Accademico getAutore() {
+    public Accademico getAutore() {
         return autore;
     }
 
@@ -160,40 +148,35 @@ public class Messaggio implements Serializable {
      *
      * @param autore L'autore da impostare.
      * */
-    /*@ public normal_behavior
-      @ assignable this.autore;
-      @ ensures this.autore == autore;
-      @*/
     public void setAutore(Accademico autore) {
         this.autore = autore;
     }
 
     /**
      * Costruttore vuoto necessario per JPA.
-     * */
-    /*@ public normal_behavior
-      @ assignable \nothing;
-      @ ensures true;
-      @*/
+     */
     public Messaggio() {}
+
+    /**
+     * Metodo chiamato automaticamente prima del persist.
+     * Imposta la data e ora corrente se non è già stata impostata.
+     */
+    @PrePersist
+    protected void onCreate() {
+        if (this.dateTime == null) {
+            this.dateTime = LocalDateTime.now();
+        }
+    }
 
     /**
      * Costruttore per inizializzare un messaggio con i dati principali.
      *
-     * @param autore    L'autore del Messaggio
-     * @param destinatario  Il destinatario del Messaggio
+     * @param autore    L'autore del messaggio
+     * @param destinatario  Il destinatario del messaggio
      * @param topic Il topic del messaggio (opzionale)
-     * @param body  Il corpo del Messaggio
+     * @param body  Il testo del messaggio
      * @param dateTime  La data e ora di creazione
-     * */
-    /*@ public normal_behavior
-      @ assignable \everything;
-      @ ensures this.autore == autore;
-      @ ensures this.destinatario == destinatario;
-      @ ensures this.topic == topic;
-      @ ensures this.body == body;
-      @ ensures this.dateTime == dateTime;
-      @*/
+     */
     public Messaggio(Accademico autore, Accademico destinatario, Topic topic, String body, LocalDateTime dateTime) {
         this.autore = autore;
         this.destinatario = destinatario;
@@ -209,11 +192,7 @@ public class Messaggio implements Serializable {
      * @return La data e ora.
      *
      * */
-    /*@ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == dateTime;
-      @*/
-    public /*@ nullable */ LocalDateTime getDateTime() {
+    public LocalDateTime getDateTime() {
         return dateTime;
     }
 
@@ -222,36 +201,24 @@ public class Messaggio implements Serializable {
      *
      * @param dateTime La data e ora da impostare.
      * */
-    /*@ public normal_behavior
-      @ assignable this.dateTime;
-      @ ensures this.dateTime == dateTime;
-      @*/
     public void setDateTime(LocalDateTime dateTime) {
         this.dateTime = dateTime;
     }
 
     /**
-     * Restituisce il corpo del messaggio.
+     * Restituisce il testo del messaggio.
      *
-     * @return Il corpo.
-     * */
-    /*@ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == body;
-      @*/
-    public /*@ nullable */ String getBody() {
+     * @return Il testo.
+     */
+    public String getBody() {
         return body;
     }
 
     /**
-     * Imposta il corpo del messaggio.
+     * Imposta il testo del messaggio.
      *
-     * @param body Il corpo da impostare.
-     * */
-    /*@ public normal_behavior
-      @ assignable this.body;
-      @ ensures this.body == body;
-      @*/
+     * @param body Il testo da impostare.
+     */
     public void setBody(String body) {
         this.body = body;
     }
@@ -261,10 +228,6 @@ public class Messaggio implements Serializable {
      *
      * @return Il topic.
      * */
-    /*@ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == topic;
-      @*/
     public /*@ nullable */ Topic getTopic() {
         return topic;
     }
@@ -274,10 +237,6 @@ public class Messaggio implements Serializable {
      *
      * @param topic Il topic da impostare.
      * */
-    /*@ public normal_behavior
-      @ assignable this.topic;
-      @ ensures this.topic == topic;
-      @*/
     public void setTopic(Topic topic) {
         this.topic = topic;
     }
@@ -287,11 +246,7 @@ public class Messaggio implements Serializable {
      *
      * @return L'id
      */
-    /*@ public normal_behavior
-      @ assignable \nothing;
-      @ ensures \result == id;
-      @*/
-    public /*@ nullable */ Long getId() {
+    public Long getId() {
         return id;
     }
 
@@ -300,7 +255,6 @@ public class Messaggio implements Serializable {
      *
      * @return Una stringa che descrive il messaggio.
      * */
-    //@ skipesc
     @Override
     public String toString() {
         return "Messaggio{" +
