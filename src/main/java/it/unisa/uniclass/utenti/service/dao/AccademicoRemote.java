@@ -19,4 +19,5 @@ public interface AccademicoRemote {
     List<Accademico> findByRole(Ruolo ruolo);
     List<Accademico> findByRuoloAndDipartimento(Ruolo ruolo, String dipartimento);
     List<Accademico> findAll();
+    Accademico findByMatricola(String matricola);
 }

@@ -4,6 +4,8 @@ import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Ruolo;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.*;
+import org.eclipse.persistence.annotations.ConversionValue;
+
 import java.util.List;
 
 @Stateless(name = "AccademicoDAO")
@@ -49,5 +51,12 @@ public class AccademicoDAO implements AccademicoRemote {
     public List<Accademico> findAll() {
         return em.createNamedQuery("Accademico.findAll", Accademico.class)
                 .getResultList();
+    }
+
+    @Override
+    public Accademico findByMatricola(String matricola) {
+        return em.createNamedQuery("Accademico.findByMatricola", Accademico.class)
+                .setParameter("matricola", matricola)
+                .getSingleResult();
     }
 }
