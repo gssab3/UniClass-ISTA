@@ -60,6 +60,21 @@ public class Utente implements Serializable {
     protected Tipo tipo;
 
     /**
+     * Numero di telefono del membro del personale TA
+     * */
+    //@ spec_public
+    //@ nullable
+    private String telefono;
+
+    /**
+     * Data di iscrizione dell'accademico.
+     */
+    //@ spec_public
+    //@ nullable
+    protected LocalDate iscrizione;
+
+
+    /**
      * Costruttore di default.
      * Inizializza un'istanza vuota di Utente.
      * */
@@ -126,6 +141,35 @@ public class Utente implements Serializable {
         this.cognome = cognome;
     }
 
+
+    /**
+     * Restituisce la data di iscrizione dell'accademico.
+     *
+     * @return la data di iscrizione, come {@link LocalDate}
+     * */
+    /*@
+      @ public normal_behavior
+      @ assignable \nothing;
+      @ ensures \result == iscrizione;
+      @*/
+    public /*@ nullable */ LocalDate getIscrizione() {
+        return iscrizione;
+    }
+
+    /**
+     Imposta la data di iscrizione dell'accademico
+     @param iscrizione la nuova data di iscrizione
+     @throws IllegalArgumentException se la data è futura.
+     */
+    /*@
+      @ public normal_behavior
+      @ assignable this.iscrizione;
+      @ ensures this.iscrizione == iscrizione;
+      @*/
+    public void setIscrizione(LocalDate iscrizione) {
+        this.iscrizione = iscrizione;
+    }
+
     /**
      * Restituisce la data di nascita dell'utente
      *
@@ -180,6 +224,35 @@ public class Utente implements Serializable {
       @*/
     public void setEmail(String email) {
         this.email = email;
+    }
+
+
+    /**
+     * Restituisce il numero di telefono del membro del personale TA
+     *
+     * @return Il numero di telefono del membro del personale TA.
+     * */
+    /*@
+      @ public normal_behavior
+      @ assignable \nothing;
+      @ ensures \result == telefono;
+      @*/
+    public /*@ nullable */ String getTelefono() {
+        return telefono;
+    }
+
+    /**
+     * Imposta il numero di telefono del membro del personale TA
+     *
+     * @param telefono Il numero di telefono del membro del personale TA.
+     * */
+    /*@
+      @ public normal_behavior
+      @ assignable this.telefono;
+      @ ensures this.telefono == telefono;
+      @*/
+    public void setTelefono(String telefono) {
+        this.telefono = telefono;
     }
 
     /**

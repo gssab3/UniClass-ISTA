@@ -2,6 +2,7 @@ package it.unisa.uniclass.utenti.model;
 
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.orari.model.CorsoLaurea;
+import it.unisa.uniclass.orari.model.Resto;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
@@ -63,12 +64,32 @@ public class Accademico extends Utente implements Serializable {
     //@ nullable
     protected String matricola;
 
+
     /**
-     * Data di iscrizione dell'accademico.
+     * Resto associato allo studente, utilizzato per indicare informazioni extra.
+     * Relazione uno-a-molti.
+     * */
+    @ManyToOne
+    @JoinColumn(name = "resto", nullable = true)
+    //@ spec_public
+    //@ nullable
+    private Resto resto;
+
+
+    /**
+     * Ruolo dell'accademico, che può essere Coordinatore, Docente o Studente.
      */
     //@ spec_public
     //@ nullable
-    protected LocalDate iscrizione;
+    protected Ruolo ruolo;
+
+    /**
+     * Dipartimento a cui appartiene il docente
+     * */
+    //@ spec_public
+    //@ nullable
+    protected String dipartimento;
+
 
     /**
      * Corso di Laurea dell'Accademico
@@ -107,14 +128,13 @@ public class Accademico extends Utente implements Serializable {
     //@ skipesc
     public Accademico() {}
 
-    public Accademico(String nome, String cognome, LocalDate dataNascita, String email, String password, Tipo tipo) {
+    public Accademico(String nome, String cognome, LocalDate dataNascita, String email, String password, Ruolo ruolo) {
         super();
         this.nome = nome;
         this.cognome = cognome;
         this.dataNascita = dataNascita;
         this.email = email;
         this.password = password;
-        this.tipo = tipo;
     }
 
     /**
@@ -145,33 +165,36 @@ public class Accademico extends Utente implements Serializable {
         this.attivato = attivato;
     }
 
+
     /**
-     * Restituisce la data di iscrizione dell'accademico.
+     * Restituisce il dipartimeno del docente
      *
-     * @return la data di iscrizione, come {@link LocalDate}
+     * @return Diaprtimento del docente
      * */
     /*@
       @ public normal_behavior
       @ assignable \nothing;
-      @ ensures \result == iscrizione;
+      @ ensures \result == dipartimento;
       @*/
-    public /*@ nullable */ LocalDate getIscrizione() {
-        return iscrizione;
+    public /*@ nullable */ String getDipartimento() {
+        return dipartimento;
     }
 
     /**
-    Imposta la data di iscrizione dell'accademico
-    @param iscrizione la nuova data di iscrizione
-    @throws IllegalArgumentException se la data è futura.
-    */
+     * Imposta il dipartimento del docente.
+     *
+     * @param dipartimento Dipartimento del docente.
+     * */
     /*@
       @ public normal_behavior
-      @ assignable this.iscrizione;
-      @ ensures this.iscrizione == iscrizione;
+      @ assignable this.dipartimento;
+      @ ensures this.dipartimento == dipartimento;
       @*/
-    public void setIscrizione(LocalDate iscrizione) {
-        this.iscrizione = iscrizione;
+    public void setDipartimento(String dipartimento) {
+        this.dipartimento = dipartimento;
     }
+
+
 
     /**
      * Restituisce il corso di laurea associato all'accademico.
@@ -215,6 +238,34 @@ public class Accademico extends Utente implements Serializable {
     }
 
     /**
+     * Restituisce il resto associato allo studente
+     *
+     * @return Oggetto {@link Resto}.
+     * */
+    /*@
+      @ public normal_behavior
+      @ assignable \nothing;
+      @ ensures \result == resto;
+      @*/
+    public /*@ nullable */ Resto getResto() {
+        return resto;
+    }
+
+    /**
+     * Imposta il resto associato allo Studente.
+     *
+     * @param resto Oggetto {@link Resto} da associare.
+     * */
+    /*@
+      @ public normal_behavior
+      @ assignable this.resto;
+      @ ensures this.resto == resto;
+      @*/
+    public void setResto(Resto resto) {
+        this.resto = resto;
+    }
+
+    /**
      * Imposta la matricola dell'accademico.
      *
      * @param matricola la nuova matricola.
@@ -229,6 +280,37 @@ public class Accademico extends Utente implements Serializable {
       @*/
     public void setMatricola(String matricola) {
         this.matricola = matricola;
+    }
+
+    /**
+     * Imposta il ruolo dell'accademico.
+     *
+     * @param ruolo il nuovo ruolo dell'accademico.
+     * @throws IllegalArgumentException se il ruolo è nullo.
+     * @exception IllegalArgumentException
+     */
+    /*@
+      @ public normal_behavior
+      @ assignable this.ruolo;
+      @ ensures this.ruolo == ruolo;
+      @*/
+    public void setRuolo(Ruolo ruolo) {
+        this.ruolo = ruolo;
+    }
+
+    /**
+     * Restituisce il ruolo dell'accademico.
+     *
+     * @return il ruolo dell'accademico, come {@link Ruolo}.
+     *
+     * */
+    /*@
+      @ public normal_behavior
+      @ assignable \nothing;
+      @ ensures \result == ruolo;
+      @*/
+    public /*@ nullable */ Ruolo getRuolo() {
+        return this.ruolo;
     }
 
 

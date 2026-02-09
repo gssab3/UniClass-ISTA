@@ -54,15 +54,6 @@ public class Studente extends Accademico implements Serializable {
         super.setTipo(Tipo.Studente);
     }
 
-    /**
-     * Resto associato allo studente, utilizzato per indicare informazioni extra.
-     * Relazione uno-a-molti.
-     * */
-    @ManyToOne
-    @JoinColumn(name = "resto", nullable = true)
-    //@ spec_public
-    //@ nullable
-    private Resto resto;
 
    
 

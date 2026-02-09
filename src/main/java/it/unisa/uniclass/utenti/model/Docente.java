@@ -76,14 +76,6 @@ public class Docente extends Accademico implements Serializable {
     //@ nullable
     private List<Lezione> lezioni = new ArrayList<>();
 
-
-    /**
-     * Dipartimento a cui appartiene il docente
-     * */
-    //@ spec_public
-    //@ nullable
-    protected String dipartimento;
-
     /**
      * Costruttore parametrico della classe Docente
      * */

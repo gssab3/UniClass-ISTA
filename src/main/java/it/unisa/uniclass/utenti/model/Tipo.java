@@ -5,26 +5,16 @@ package it.unisa.uniclass.utenti.model;
  * <p>
  * I tipi disponibili sono:
  * <ul>
- *   <li>{@link #Studente} - Rappresenta uno studente universitario.</li>
- *   <li>{@link #Docente} - Rappresenta un docente universitario.</li>
- *   <li>{@link #Coordinatore} - Rappresenta il coordinatore di un corso o dipartimento.</li>
+ *   <li>{@link Accademico} - Rappresenta un accademico, che può essere uno studente, docente o coordinatore.</li>
  *   <li>{@link #PersonaleTA} - Rappresenta il personale tecnico-amministrativo.</li>
  * </ul>
  * </p>
  */
 public enum Tipo {
     /**
-     * Rappresenta uno studente universitario.
+     * Rappresenta uno Accademico.
      */
-    Studente,
-    /**
-     * Rappresenta un docente universitario.
-     */
-    Docente,
-    /**
-     * Rappresenta il coordinatore di un corso o dipartimento.
-     */
-    Coordinatore,
+    Accademico,
     /**
      * Rappresenta il personale tecnico-amministrativo.
      */
