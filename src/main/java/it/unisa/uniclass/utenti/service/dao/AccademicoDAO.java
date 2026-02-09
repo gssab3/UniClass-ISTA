@@ -23,12 +23,23 @@ public class AccademicoDAO implements AccademicoRemote {
     }
 
     @Override
-    public void remove(Accademico accademico){
+    public void remove(Accademico accademico) {
         if (!emUniclass.contains(accademico)) {
             accademico = emUniclass.merge(accademico);
         }
         emUniclass.remove(accademico);
     }
+
+    @Override
+    public Accademico findByEmail(String email) {
+        return emUniclass.find(Accademico.class, email);
+    }
+
+    @Override
+    public List<Accademico> findByRole(Ruolo ruolo){
+        vai vai queto
+
+}
 
 
 }

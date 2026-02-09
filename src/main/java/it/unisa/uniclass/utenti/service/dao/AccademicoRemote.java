@@ -16,15 +16,15 @@ public interface AccademicoRemote {
     void update(Accademico accademico);
     void remove(Accademico accademico);
 
-    // Ricerca puntuale
+    // Ricerca
     Accademico findByEmail(String email);
     Accademico findByMatricola(String matricola);
 
-    // QUERY PARAMETRICHE (Il cuore della richiesta)
+    // QUERY PARAMETRICHE
     // Sostituisce findAllStudenti, findAllDocenti, ecc.
     List<Accademico> findByRuolo(Ruolo ruolo);
 
-    // Esempio: Filtro combinato (se serve filtrare anche per dipartimento)
+
     List<Accademico> findByRuoloAndDipartimento(Ruolo ruolo, String dipartimento);
 
     List<Accademico> findAll();
