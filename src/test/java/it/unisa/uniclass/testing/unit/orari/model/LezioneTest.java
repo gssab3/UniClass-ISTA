@@ -1,7 +1,6 @@
 package it.unisa.uniclass.testing.unit.orari.model;
 
 import it.unisa.uniclass.orari.model.*;
-import it.unisa.uniclass.utenti.model.Docente;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

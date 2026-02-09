@@ -4,7 +4,6 @@ import it.unisa.uniclass.orari.model.AnnoDidattico;
 import it.unisa.uniclass.orari.model.Corso;
 import it.unisa.uniclass.orari.model.CorsoLaurea;
 import it.unisa.uniclass.orari.model.Lezione;
-import it.unisa.uniclass.utenti.model.Docente;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

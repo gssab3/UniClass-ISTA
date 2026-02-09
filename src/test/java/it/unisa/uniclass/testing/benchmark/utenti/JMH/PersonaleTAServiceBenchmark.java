@@ -2,7 +2,6 @@ package it.unisa.uniclass.testing.benchmark.utenti.JMH;
 
 import it.unisa.uniclass.testing.benchmark.utenti.mocks.MockPersonaleTADAO;
 import it.unisa.uniclass.utenti.model.PersonaleTA;
-import it.unisa.uniclass.utenti.service.PersonaleTAService;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 

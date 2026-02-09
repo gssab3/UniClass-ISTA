@@ -1,6 +1,5 @@
 package it.unisa.uniclass.testing.unit.utenti.service.dao;
 
-import it.unisa.uniclass.utenti.model.Coordinatore;
 import it.unisa.uniclass.utenti.service.dao.CoordinatoreDAO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -10,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class CoordinatoreDAOTest {

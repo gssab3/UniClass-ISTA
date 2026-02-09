@@ -1,8 +1,5 @@
 package it.unisa.uniclass.testing.benchmark.utenti.mocks;
 
-import it.unisa.uniclass.utenti.model.Docente;
-import it.unisa.uniclass.utenti.service.dao.DocenteRemote;
-
 import java.util.*;
 
 public class MockDocenteDAO implements DocenteRemote {

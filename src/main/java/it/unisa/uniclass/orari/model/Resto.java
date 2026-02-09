@@ -1,13 +1,10 @@
 package it.unisa.uniclass.orari.model;
 
-import it.unisa.uniclass.utenti.model.Studente;
 import jakarta.persistence.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import static it.unisa.uniclass.orari.model.Resto.*;
 
 /**
  * Classe rappresentante un "Resto", che identifica una suddivisione di studenti all'interno di un  corso di laurea.

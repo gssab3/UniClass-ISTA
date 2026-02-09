@@ -1,8 +1,6 @@
 package it.unisa.uniclass.testing.unit.utenti.controller;
 
 import it.unisa.uniclass.utenti.controller.GetEmailServlet;
-import it.unisa.uniclass.utenti.service.AccademicoService;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;

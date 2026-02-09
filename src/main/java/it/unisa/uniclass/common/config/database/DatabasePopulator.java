@@ -2,21 +2,15 @@ package it.unisa.uniclass.common.config.database;
 
 import it.unisa.uniclass.common.security.CredentialSecurity;
 import it.unisa.uniclass.orari.model.*;
-import it.unisa.uniclass.orari.service.CorsoLaureaService;
-import it.unisa.uniclass.utenti.model.Docente;
 import it.unisa.uniclass.utenti.model.PersonaleTA;
-import it.unisa.uniclass.utenti.model.Studente;
 import it.unisa.uniclass.utenti.model.Tipo;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.sql.DataSourceDefinition;
 import jakarta.ejb.LocalBean;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
-import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 
 import java.sql.Time;
 import java.time.LocalDate;

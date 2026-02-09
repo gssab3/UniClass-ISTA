@@ -1,8 +1,6 @@
 package it.unisa.uniclass.utenti.service.dao;
 
 import it.unisa.uniclass.utenti.model.*;
-import it.unisa.uniclass.utenti.model.Docente;
-import it.unisa.uniclass.utenti.model.Tipo;
 import jakarta.ejb.Remote;
 
 import java.util.List;
@@ -16,16 +14,9 @@ public interface AccademicoRemote {
     void update(Accademico accademico);
     void remove(Accademico accademico);
 
-    // Ricerca
-    Accademico findByEmail(String email);
-    Accademico findByMatricola(String matricola);
 
-    // QUERY PARAMETRICHE
-    // Sostituisce findAllStudenti, findAllDocenti, ecc.
-    List<Accademico> findByRuolo(Ruolo ruolo);
-
-
+    // QUERY di retrieval
+    List<Accademico> findByRole(Ruolo ruolo);
     List<Accademico> findByRuoloAndDipartimento(Ruolo ruolo, String dipartimento);
-
     List<Accademico> findAll();
 }

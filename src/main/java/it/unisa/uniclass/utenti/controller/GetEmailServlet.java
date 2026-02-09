@@ -1,6 +1,5 @@
 package it.unisa.uniclass.utenti.controller;
 
-import it.unisa.uniclass.utenti.service.AccademicoService;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;

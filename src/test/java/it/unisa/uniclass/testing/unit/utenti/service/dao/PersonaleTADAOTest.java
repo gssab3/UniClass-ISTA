@@ -1,7 +1,6 @@
 package it.unisa.uniclass.testing.unit.utenti.service.dao;
 
 import it.unisa.uniclass.utenti.model.PersonaleTA;
-import it.unisa.uniclass.utenti.service.dao.PersonaleTADAO;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.persistence.NoResultException;

@@ -2,7 +2,6 @@ package it.unisa.uniclass.testing.unit.utenti.model;
 
 import it.unisa.uniclass.orari.model.CorsoLaurea;
 import it.unisa.uniclass.orari.model.Resto;
-import it.unisa.uniclass.utenti.model.Studente;
 import it.unisa.uniclass.utenti.model.Tipo;
 import org.junit.jupiter.api.Test;
 

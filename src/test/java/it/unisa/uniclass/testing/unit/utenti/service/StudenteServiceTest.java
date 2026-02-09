@@ -3,10 +3,6 @@ package it.unisa.uniclass.testing.unit.utenti.service;
 import it.unisa.uniclass.common.exceptions.AlreadyExistentUserException;
 import it.unisa.uniclass.common.exceptions.NotFoundUserException;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Studente;
-import it.unisa.uniclass.utenti.service.AccademicoService;
-import it.unisa.uniclass.utenti.service.StudenteService;
-import it.unisa.uniclass.utenti.service.dao.StudenteRemote;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -16,8 +12,7 @@ import org.mockito.MockitoAnnotations; // <--- Fondamentale
 import jakarta.persistence.NoResultException;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import org.mockito.MockedConstruction;
-import org.mockito.MockedStatic;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;

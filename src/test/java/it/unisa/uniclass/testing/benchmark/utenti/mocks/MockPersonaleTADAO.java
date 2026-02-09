@@ -1,7 +1,6 @@
 package it.unisa.uniclass.testing.benchmark.utenti.mocks;
 
 import it.unisa.uniclass.utenti.model.PersonaleTA;
-import it.unisa.uniclass.utenti.service.dao.PersonaleTARemote;
 
 import java.util.*;
 

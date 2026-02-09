@@ -5,7 +5,6 @@ import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.conversazioni.service.dao.MessaggioRemote;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Studente;
 import it.unisa.uniclass.orari.model.CorsoLaurea;
 import jakarta.persistence.NoResultException;
 import org.junit.jupiter.api.BeforeEach;

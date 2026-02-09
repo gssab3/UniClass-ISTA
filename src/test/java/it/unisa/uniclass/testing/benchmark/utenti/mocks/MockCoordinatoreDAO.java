@@ -1,8 +1,5 @@
 package it.unisa.uniclass.testing.benchmark.utenti.mocks;
 
-import it.unisa.uniclass.utenti.model.Coordinatore;
-import it.unisa.uniclass.utenti.service.dao.CoordinatoreRemote;
-
 import java.util.*;
 
 public class MockCoordinatoreDAO implements CoordinatoreRemote {
