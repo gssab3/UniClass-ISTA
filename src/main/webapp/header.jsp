@@ -13,7 +13,13 @@
 %>
 
 <header>
+
+
     <div class="logo">
+        <!-- Pulsante hamburger per aprire la sidebar -->
+        <div class="TastoMenu" onclick="openNav()" align="left">
+            <img src="<%=request.getContextPath()%>/images/icons/menuClosedIcon.png" alt="Menu" style="width: 30px; height: 30px; cursor: pointer;">
+        </div>
         <a href="<%=request.getContextPath()%>/Home">
             <img src="<%=request.getContextPath()%>/images/logois.png" alt="UniClass Logo">
         </a>

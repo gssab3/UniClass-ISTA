@@ -47,7 +47,7 @@
   </a>
   <p>Menu</p>
   <ul id="menu">
-    <li id="aule"><a href="aula.jsp">Aule</a></li>
+    <li id="aule"><a href="AulaServlet">Aule</a></li>
 
     <%-- Logica Condizionale Menu --%>
     <% if (tipoUtente != null) { %>

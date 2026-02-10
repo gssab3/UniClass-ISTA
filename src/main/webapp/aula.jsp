@@ -18,9 +18,9 @@
         tipoUtente = (Tipo) user.getTipo();
     }
 
-    AulaService aulaService = new AulaService();
-    List<String> edificitotali = aulaService.trovaEdifici();
 
+
+    List<String> edificitotali = (List<String>) request.getAttribute("edificitotali");
     // Nota: corsiLaurea recuperato ma non utilizzato nel display corrente, mantenuto per compatibilità
     List<CorsoLaurea> corsiLaurea = (List<CorsoLaurea>) request.getAttribute("corsi");
 %>
@@ -45,18 +45,18 @@
     </a>
     <p>Menu</p>
     <ul id="menu">
-        <li id="aule"><a href="aula.jsp">Aule</a></li>
+        <li id="aule"><a href="AulaServlet">Aule</a></li>
 
         <%-- Voci menu per utenti loggati --%>
         <% if (tipoUtente != null) { %>
 
-        <%-- Solo Studente vede Agenda --%>
+        <%-- Solo Studente vede Agenda
         <% if (tipoUtente.equals(Tipo.Studente)) { %>
         <li id="agenda"><a href="servelt">Agenda</a></li>
-        <% } %>
+        <% } %>  --%>
 
-        <%-- Tutti gli utenti loggati vedono Appelli (in base al codice originale) --%>
-        <li id="appelli"><a href="servelt">Appelli</a></li>
+        <%-- Tutti gli utenti loggati vedono Appelli (in base al codice originale)
+        <li id="appelli"><a href="servelt">Appelli</a></li>--%>
 
         <%-- Gestione differenziata: PersonaleTA vs Altri --%>
         <% if (tipoUtente.equals(Tipo.PersonaleTA)) { %>

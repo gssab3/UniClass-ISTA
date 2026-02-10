@@ -7,6 +7,7 @@
 <%@ page import="it.unisa.uniclass.utenti.service.AccademicoService" %>
 <%@ page import="it.unisa.uniclass.conversazioni.model.Messaggio" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="it.unisa.uniclass.utenti.model.Ruolo" %>
 
 <%
   /* Sessione HTTP */
@@ -18,7 +19,6 @@
 
   /* Controllo tipo utente */
   Tipo tipoUtente = null;
-  boolean isDocenteOrCoordinatore = false;
 
   if (user != null) {
     tipoUtente = user.getTipo();
@@ -27,22 +27,21 @@
       response.sendRedirect("ErroreAccesso.jsp");
       return;
     }
-
-    if (tipoUtente == Tipo.Docente || tipoUtente == Tipo.Coordinatore) {
-      isDocenteOrCoordinatore = true;
-    }
-
-  } else {
+  }
+  else {
     response.sendRedirect("Login.jsp");
     return;
   }
 
   Accademico accademicoSelf = (Accademico) request.getAttribute("accademicoSelf");
-  AccademicoService accademicoService = new AccademicoService();
-
   List<Messaggio> messaggi = new ArrayList<Messaggio>();
 
-  if (isDocenteOrCoordinatore || tipoUtente == Tipo.Studente) {
+  if (accademicoSelf == null) {
+    response.sendRedirect("Login.jsp");
+    return;
+  }
+
+  if (accademicoSelf != null) {
     List<Messaggio> msgAttr = (List<Messaggio>) request.getAttribute("messaggi");
     if (msgAttr != null) {
       messaggi = msgAttr;
@@ -72,7 +71,7 @@
   </a>
   <p>Menu</p>
   <ul id="menu">
-    <li id="aule"><a href="aula.jsp">Aule</a></li>
+    <li id="aule"><a href="AulaServlet">Aule</a></li>
     <li id="conversazioni"><a href="Conversazioni">Conversazioni</a></li>
     <li id="mappa"><a href="mappa.jsp">Mappa</a></li>
     <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a></li>
@@ -109,9 +108,9 @@
 
       for(Accademico accademico : accademiciFor) {
         String iconPath = "images/icons/usericonnolog.png"; // Default
-        if(accademico.getTipo().equals(Tipo.Studente)){
+        if(accademico.getRuolo().equals(Ruolo.STUDENTE)){
           iconPath = "images/icons/iconstudent.png";
-        } else if (accademico.getTipo().equals(Tipo.Docente) || accademico.getTipo().equals(Tipo.Coordinatore)) {
+        } else if (accademico.getRuolo().equals(Ruolo.DOCENTE) || accademico.getRuolo().equals(Ruolo.COORDINATORE)) {
           iconPath = "images/icons/iconprof.png";
         }
     %>
@@ -132,14 +131,14 @@
   <form id="myForm" action="invioMessaggioServlet" method="post" class="chat-form">
     <label for="email" class="form-label">Seleziona un'email:</label>
     <select id="email" name="email" class="form-select">
-      <% if(isDocenteOrCoordinatore) { %>
+      <% if(accademicoSelf.getRuolo().equals(Ruolo.DOCENTE) || accademicoSelf.getRuolo().equals(Ruolo.COORDINATORE)) { %>
       <option value="tutti">Annuncio</option>
       <% } %>
     </select>
 
     <br><br>
 
-    <% if(isDocenteOrCoordinatore) { %>
+    <% if(accademicoSelf.getRuolo().equals(Ruolo.DOCENTE) || accademicoSelf.getRuolo().equals(Ruolo.COORDINATORE)) { %>
     <label for="topic" class="form-label">Topic:</label>
     <textarea id="topic" name="topic" class="form-textarea" rows="5" cols="40"></textarea>
     <br><br>

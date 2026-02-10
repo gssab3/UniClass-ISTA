@@ -51,15 +51,13 @@
     </a>
     <p>Menu</p>
     <ul id="menu">
-        <li id="aule"><a href="aula.jsp">Aule</a></li>
+        <li id="aule"><a href="AulaServlet">Aule</a></li>
 
         <%-- Logica Condizionale Menu --%>
         <% if (tipoUtente != null) { %>
         <% if (tipoUtente.equals(Tipo.PersonaleTA)) { %>
         <li id="gutenti"><a href="PersonaleTA/AttivaUtenti.jsp">Gestione Utenti</a></li>
-        <% } else if (tipoUtente.equals(Tipo.Studente) ||
-                tipoUtente.equals(Tipo.Docente) ||
-                tipoUtente.equals(Tipo.Coordinatore)) { %>
+        <% } else if (tipoUtente.equals(Tipo.Accademico)) { %>
         <li id="conversazioni"><a href="Conversazioni">Conversazioni</a></li>
         <% } %>
         <% } %>

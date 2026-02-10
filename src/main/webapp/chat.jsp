@@ -61,7 +61,7 @@
         <% if (accademicoLoggato.getRuolo() == Ruolo.STUDENTE) { %>
         <li id="orari"><a href="servelt">Orari</a></li>
         <% } %>
-        <li id="aule"><a href="aula.jsp">Aule</a></li>
+        <li id="aule"><a href="AulaServlet">Aule</a></li>
         <li id="conversazioni"><a href="Conversazioni">Conversazioni</a></li>
         <li id="mappa"><a href="mappa.jsp">Mappa</a></li>
         <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a></li>

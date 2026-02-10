@@ -45,7 +45,7 @@
     <a href="javascript:void(0)" class="closebtn" onclick="closeNav()"><img src="${pageContext.request.contextPath}/images/icons/menuOpenIcon.png" alt="closebtn"></a>
     <p>Menu<p>
     <ul id="menu">
-        <li id="aule"><a href="${pageContext.request.contextPath}/aula.jsp">Aule</a>
+        <li id="aule"><a href="${pageContext.request.contextPath}/AulaServlet">Aule</a>
         </li>
         <li id="gutenti"><a href="AttivaUtenti.jsp">Gestione Utenti</a>
         </li>
