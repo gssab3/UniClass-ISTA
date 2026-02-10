@@ -1,0 +1,25 @@
+<resources>
+    <Resource id="jdbc/DBUniClass" type="DataSource">
+        # Driver per PostgreSQL
+        JdbcDriver = org.postgresql.Driver
+
+        # URL di connessione.
+        # 'postgres' è l'hostname del servizio definito nel docker-compose.yml
+        # '5432' è la porta interna del container
+        # 'dbuniclass' è il nome del DB definito in POSTGRES_DB
+        JdbcUrl = jdbc:postgresql://postgres:5432/dbuniclass
+
+        UserName = postgres
+        Password = password
+
+        # Configurazione Pool
+        JtaManaged = true
+        MaxActive = 20
+        MaxIdle = 5
+        MinIdle = 2
+
+        # Validazione connessione (importante per evitare errori se il DB si riavvia)
+        ValidationQuery = SELECT 1
+        TestOnBorrow = true
+    </Resource>
+</resources>

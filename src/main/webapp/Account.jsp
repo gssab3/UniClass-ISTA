@@ -2,131 +2,133 @@
 <%@ page import="it.unisa.uniclass.utenti.model.Utente" %>
 <%@ page import="it.unisa.uniclass.utenti.model.Accademico" %>
 <%@ page import="it.unisa.uniclass.utenti.model.Ruolo" %>
-<%@ page import="it.unisa.uniclass.utenti.model.Tipo" %>
 
 <%
-    /* Recupero Sessione */
-    HttpSession sessione = request.getSession(false);
-    if(sessione == null || sessione.getAttribute("currentSessionUser") == null) {
+    // Recupero Utente dalla Sessione
+    Utente u = (Utente) session.getAttribute("currentSessionUser");
+
+    // Redirect se non loggato
+    if (u == null) {
         response.sendRedirect("Login.jsp");
         return;
     }
 
-    Utente user = (Utente) sessione.getAttribute("currentSessionUser");
-    session.setAttribute("utenteEmail", user.getEmail());
+    // Preparazione dati per la visualizzazione
+    boolean isAccademico = (u instanceof Accademico);
+    Accademico acc = isAccademico ? (Accademico) u : null;
 
-    /* Variabili per visualizzazione unificata */
-    String uNome = user.getNome();
-    String uCognome = user.getCognome();
-    String uDataNascita = "Data di nascita: " + user.getDataNascita();
-    String uEmail = user.getEmail();
-    String uDataIscrizione = "Iscritto dal: " + user.getIscrizione();
+    String userIcon = "images/icons/usericonlog.png"; // Default
+    String ruoloStr = "Utente";
 
-    // Default per generico Utente (ex Personale TA)
-    String uMatricolaOrId = "ID: Non disponibile";
-    String uCorsoOrTelefono = "Tel: " + (user.getTelefono() != null ? user.getTelefono() : "N/D");
-    String userIcon = "images/icons/usericonnolog.png";
-
-    // Determina il tipo per il menu laterale
-    boolean isAccademico = false;
-    boolean isPersonaleTA = true; // Di default se non è accademico
-
-    /* Logica specifica per Accademico (Polimorfismo) */
-    if (user instanceof Accademico) {
-        Accademico acc = (Accademico) user;
-        isAccademico = true;
-        isPersonaleTA = false;
-
-        uMatricolaOrId = acc.getMatricola();
-
-        if (acc.getCorsoLaurea() != null) {
-            uCorsoOrTelefono = acc.getCorsoLaurea().getNome();
-        } else {
-            uCorsoOrTelefono = "Nessun corso assegnato";
-        }
-
-        // Gestione Icone in base al Ruolo
-        if (acc.getRuolo() == Ruolo.STUDENTE) {
+    if (isAccademico && acc != null) {
+        if (acc.getRuolo() == Ruolo.Studente) {
             userIcon = "images/icons/iconstudent.png";
-        } else if (acc.getRuolo() == Ruolo.DOCENTE || acc.getRuolo() == Ruolo.COORDINATORE) {
+            ruoloStr = "Studente";
+        } else if (acc.getRuolo() == Ruolo.DOCENTE) {
             userIcon = "images/icons/iconprof.png";
+            ruoloStr = "Docente";
+        } else if (acc.getRuolo() == Ruolo.COORDINATORE) {
+            userIcon = "images/icons/iconprof.png";
+            ruoloStr = "Coordinatore";
         }
     } else {
-        // Logica per Utente Generico (Personale TA)
         userIcon = "images/icons/iconpersonaleTA.png";
-        // Qui si potrebbe usare user.getTipo() se l'enum Tipo esiste ancora per distinguere admin
+        ruoloStr = "Personale Tecnico Amministrativo";
     }
 %>
 
 <!DOCTYPE html>
-<html lang="it" xml:lang="it">
-
+<html lang="it">
 <head>
-    <title>UniClass Account</title>
-    <script src="scripts/sidebar.js" type="text/javascript"></script>
-    <link type="text/css" rel="stylesheet" href="styles/headerStyle.css" />
-    <link type="text/css" rel="stylesheet" href="styles/barraNavigazioneStyle.css"/>
-    <link type="text/css" rel="stylesheet" href="styles/informazioniStyle.css">
-    <link rel="icon" href="images/logois.png" sizes="32x32" type="image/png">
+    <meta charset="UTF-8">
+    <title>Il mio Account - UniClass</title>
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/styles/headerStyle.css">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/styles/barraNavigazioneStyle.css">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/styles/footerstyle.css">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/styles/uniClassAdd.css">
+
+    <style>
+        .account-container {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            object-fit: cover;
+            border: 4px solid #0056b3;
+        }
+        .info-group {
+            margin: 15px 0;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            text-align: left;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            display: block;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 1.1em;
+            color: #333;
+        }
+    </style>
 </head>
-
 <body>
-
-<div class="barraNavigazione" id="barraNavigazione">
-    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">
-        <img src="images/icons/menuOpenIcon.png" alt="closebtn">
-    </a>
-    <p>Menu</p>
-    <ul id="menu">
-        <li id="aule"><a href="aula.jsp">Aule</a></li>
-
-        <%-- Menu condizionale --%>
-        <% if(isPersonaleTA) { %>
-        <li id="gutenti"><a href="PersonaleTA/AttivaUtenti.jsp">Gestione Utenti</a></li>
-        <% } else { %>
-        <li id="conversazioni"><a href="Conversazioni">Conversazioni</a></li>
-        <% } %>
-
-        <li id="mappa"><a href="mappa.jsp">Mappa</a></li>
-        <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a></li>
-        <li id="infoapp"><a href="infoapp.jsp">Info App</a></li>
-        <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a></li>
-    </ul>
-</div>
 
 <jsp:include page="header.jsp" />
 
-<div class="listaInfo" id="listaInfo">
-    <h2>Informazioni</h2>
-    <ul id="infolist">
-        <img src="<%= userIcon %>" alt="immagineutente">
+<div class="content">
+    <div class="account-container">
+        <img src="<%=request.getContextPath()%>/<%=userIcon%>" alt="Profile Picture" class="profile-img">
 
-        <li id="nome"><%= uNome %></li>
-        <li id="cognome"><%= uCognome %></li>
-        <li id="dataNascita"><%= uDataNascita %></li>
+        <h2><%= u.getNome() %> <%= u.getCognome() %></h2>
+        <p style="color: #666; font-size: 1.2em;"><%= ruoloStr %></p>
 
-        <%-- ID / Matricola --%>
-        <% if (isAccademico) { %>
-        <li id="matricola"><%= uMatricolaOrId %></li>
-        <% } else { %>
-        <li id="id"><%= uMatricolaOrId %></li>
+        <div class="info-group">
+            <span class="info-label">Email Istituzionale</span>
+            <span class="info-value"><%= u.getEmail() %></span>
+        </div>
+
+        <div class="info-group">
+            <span class="info-label">Telefono</span>
+            <span class="info-value"><%= (u.getTelefono() != null) ? u.getTelefono() : "Non specificato" %></span>
+        </div>
+
+        <% if (isAccademico && acc != null) { %>
+        <div class="info-group">
+            <span class="info-label">Matricola</span>
+            <span class="info-value"><%= acc.getMatricola() %></span>
+        </div>
+
+        <div class="info-group">
+            <span class="info-label">Dipartimento</span>
+            <span class="info-value"><%= (acc.getDipartimento() != null) ? acc.getDipartimento() : "N/D" %></span>
+        </div>
+
+        <% if (acc.getCorsoLaurea() != null) { %>
+        <div class="info-group">
+            <span class="info-label">Corso di Laurea</span>
+            <span class="info-value"><%= acc.getCorsoLaurea().getNome() %></span>
+        </div>
+        <% } %>
         <% } %>
 
-        <li id="email"><%= uEmail %></li>
-
-        <%-- Corso / Telefono --%>
-        <% if (isAccademico) { %>
-        <li id="corsoLaurea"><%= uCorsoOrTelefono %></li>
-        <li id="dataIscrizione"><%= uDataIscrizione %></li>
-        <% } else { %>
-        <li id="telefono"><%= uCorsoOrTelefono %></li>
-        <% } %>
-    </ul>
-
-    <form action="LogoutServlet" method="post">
-        <button type="submit" class="logout-button">Logout</button>
-    </form>
+        <br>
+        <a href="Logout" class="button" style="background-color: #dc3545;">Disconnetti</a>
+    </div>
 </div>
+
+<jsp:include page="footer.jsp" />
 
 </body>
 </html>

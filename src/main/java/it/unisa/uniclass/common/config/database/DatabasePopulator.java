@@ -13,7 +13,7 @@ import java.sql.Time;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
+/*
 @Singleton
 @Startup
 public class DatabasePopulator {
@@ -24,9 +24,8 @@ public class DatabasePopulator {
     @PostConstruct
     public void populateDB() {
         // --- 1. Creazione Utenti (Docenti) ---
-        // Sostituisco new Docente() con new Accademico() + Ruolo.DOCENTE
 
-        Accademico docente1 = creaAccademico("prof1@unisa.it", "password", "Mario", "Rossi", "0123456789", "D001", Ruolo.Docente, "Informatica");
+        Accademico docente1 = creaAccademico("prof1@unisa.it", "Password1#", "Mario", "Rossi", "0123456789", "D001", Ruolo.Docente, "Informatica");
         Accademico docente2 = creaAccademico("prof2@unisa.it", "password", "Luigi", "Verdi", "0123456788", "D002", Ruolo.Docente, "Matematica");
         Accademico docente3 = creaAccademico("prof3@unisa.it", "password", "Anna", "Bianchi", "0123456787", "D003", Ruolo.Docente, "Fisica");
 
@@ -47,7 +46,7 @@ public class DatabasePopulator {
                 LocalDate.of(1980, 1, 1),
                 "089123456",
                 LocalDate.now(),
-                Tipo.PersonaleTA // Assicurati che l'Enum Tipo abbia questo valore, o usa un altro valore generico
+                Tipo.Accademico // Assicurati che l'Enum Tipo abbia questo valore, o usa un altro valore generico
         );
         em.persist(ta1);
 
@@ -144,7 +143,7 @@ public class DatabasePopulator {
 
     /**
      * Helper per creare e persistere un Accademico
-     */
+
     private Accademico creaAccademico(String email, String pass, String nome, String cognome, String tel, String matricola, Ruolo ruolo, String dip) {
         Accademico a = new Accademico();
         a.setEmail(email);
@@ -169,3 +168,4 @@ public class DatabasePopulator {
         return a;
     }
 }
+*/

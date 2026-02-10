@@ -8,7 +8,6 @@ import it.unisa.uniclass.utenti.model.Utente;
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Stateless
@@ -44,19 +43,19 @@ public class UserDirectoryImpl implements UserDirectory {
     @Override
     public boolean isDocente(String email) {
         Accademico a = getAccademico(email);
-        return a != null && a.getRuolo() == Ruolo.Docente;
+        return a != null && a.getRuolo() == Ruolo.DOCENTE;
     }
 
     @Override
     public boolean isStudente(String email) {
         Accademico a = getAccademico(email);
-        return a != null && a.getRuolo() == Ruolo.Studente;
+        return a != null && a.getRuolo() == Ruolo.STUDENTE;
     }
 
     @Override
     public boolean isCoordinatore(String email) {
         Accademico a = getAccademico(email);
-        return a != null && a.getRuolo() == Ruolo.Coordinatore;
+        return a != null && a.getRuolo() == Ruolo.COORDINATORE;
     }
 
     @Override

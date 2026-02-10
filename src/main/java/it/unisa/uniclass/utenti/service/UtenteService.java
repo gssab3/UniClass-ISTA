@@ -5,6 +5,7 @@ import it.unisa.uniclass.common.exceptions.AuthenticationException;
 import it.unisa.uniclass.common.exceptions.NotFoundUserException;
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Ruolo;
+import it.unisa.uniclass.utenti.model.Tipo;
 import it.unisa.uniclass.utenti.model.Utente;
 import it.unisa.uniclass.utenti.service.dao.AccademicoRemote;
 import it.unisa.uniclass.utenti.service.dao.UtenteRemote;
@@ -43,7 +44,7 @@ public class UtenteService {
             throw new AlreadyExistentUserException("Utente già esistente: " + utente.getEmail());
         }
         // Qui potresti settare un 'tipo' di default se il DB lo richiede, es:
-        // utente.setTipo("AMMINISTRATIVO");
+        utente.setTipo(Tipo.Accademico);
         utenteDAO.create(utente);
     }
 

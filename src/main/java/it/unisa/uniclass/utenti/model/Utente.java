@@ -34,8 +34,8 @@ public class Utente implements Serializable {
     private String cognome;
 
     @Column(name = "data_nascita")
-    @Temporal(TemporalType.DATE)
     private LocalDate dataNascita;
+
 
     @Column(name = "telefono")
     private String telefono;

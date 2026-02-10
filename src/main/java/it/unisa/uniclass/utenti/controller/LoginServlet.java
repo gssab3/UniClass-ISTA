@@ -31,7 +31,8 @@ public class LoginServlet extends HttpServlet {
         try {
             String email = request.getParameter("email");
             String passwordRaw = request.getParameter("password");
-            String password = CredentialSecurity.hashPassword(passwordRaw);
+            String password = passwordRaw; // niente hash
+
 
             try {
                 // CHIAMATA FACADE

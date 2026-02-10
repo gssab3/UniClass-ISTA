@@ -1,71 +1,56 @@
+<%@ page import="it.unisa.uniclass.utenti.model.Utente" %>
+<%@ page import="it.unisa.uniclass.utenti.model.Accademico" %>
+<%@ page import="it.unisa.uniclass.utenti.model.Ruolo" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
-<%@ page import="it.unisa.uniclass.utenti.model.Utente, it.unisa.uniclass.utenti.model.Tipo" %>
-
 <%
-    /* Sessione HTTP */
-	HttpSession sessione = request.getSession(true);
-	Utente user = (Utente) sessione.getAttribute("currentSessionUser");
-
-    if(user != null){
-        session.setAttribute("utenteEmail", user.getEmail());
+    Utente u = (Utente) session.getAttribute("currentSessionUser");
+    Accademico acc = null;
+    boolean isAccademico = (u instanceof Accademico);
+    if(isAccademico) {
+        acc = (Accademico) u;
     }
-
-
-
-	/* controllo tipo utente*/
-
-	Tipo tipoUtente;
-	if(user != null)
-		tipoUtente = (Tipo) user.getTipo();
-	else
-		tipoUtente = null;
-
-
 %>
 
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Header</title>
-<script src="scripts/sidebar.js" type="text/javascript"></script>
-</head>
-<body>
+<header>
+    <div class="logo">
+        <a href="<%=request.getContextPath()%>/Home">
+            <img src="<%=request.getContextPath()%>/images/logois.png" alt="UniClass Logo">
+        </a>
+    </div>
 
-	<header>
-		<div class="TastoMenu">
-        	<span style="font-size:50px;cursor:pointer" onclick="openNav()">
-        		<img src="${pageContext.request.contextPath}/images/icons/menuClosedIcon.png" alt="open">
-        	</span>
+    <div class="user-info">
+        <div class="user-details">
+            <% if (u != null) { %>
+            <span class="user-name"><%= u.getNome() %> <%= u.getCognome() %></span>
+            <span class="user-role">
+                    <%
+                        if (isAccademico) {
+                            out.print(acc.getRuolo().toString());
+                        } else {
+                            out.print("Personale TA");
+                        }
+                    %>
+                </span>
+            <% } else { %>
+            <span class="user-name">Ospite</span>
+            <% } %>
         </div>
-
-        <div class="ContentHeader">
-        		<a href="${pageContext.request.contextPath}/Home" style="cursor: pointer"><img alt="logo UniClass" src="${pageContext.request.contextPath}/images/logois.png"></a>
+        <div class="user-icon">
+            <% if (u == null) { %>
+            <img src="<%=request.getContextPath()%>/images/icons/usericonnolog.png" alt="User Icon">
+            <% } else {
+                if (isAccademico && acc.getRuolo() == Ruolo.DOCENTE) { %>
+            <img src="<%=request.getContextPath()%>/images/icons/iconprof.png" alt="Docente Icon">
+            <% } else if (isAccademico && acc.getRuolo() == Ruolo.STUDENTE) { %>
+            <img src="<%=request.getContextPath()%>/images/icons/iconstudent.png" alt="Studente Icon">
+            <% } else { %>
+            <img src="<%=request.getContextPath()%>/images/icons/iconpersonaleTA.png" alt="PTA Icon">
+            <% }
+            } %>
         </div>
-
-        <% if (tipoUtente == null){ %>
-
-        <div class="TastoLogin" >
-            <span style="font-size:30px;cursor:pointer">
-                <a href="${pageContext.request.contextPath}/Login.jsp">
-                    <img src="${pageContext.request.contextPath}/images/icons/usericonnolog.png" alt="open">
-                </a>
-            </span>
-        </div>
-
-        <% } else if(tipoUtente != null) { %>
-        <div class="TastoLogin" >
-            <span style="font-size:30px;cursor:pointer">
-                <a href="${pageContext.request.contextPath}/Account.jsp">
-                    <img src="${pageContext.request.contextPath}/images/icons/usericonlog.png" alt="open">
-                </a>
-            </span>
-        </div>
+        <% if (u != null) { %>
+        <a href="<%=request.getContextPath()%>/Logout" class="logout-button">Esci</a>
         <% } %>
-
-
-	</header>
-
-</body>
-</html>
+    </div>
+</header>

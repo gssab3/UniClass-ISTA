@@ -11,8 +11,9 @@ package it.unisa.uniclass.utenti.model;
  * </ul>
  * </p>
  */
+
 public enum Ruolo {
-    Studente,
-    Docente,
-    Coordinatore
+    STUDENTE,
+    DOCENTE,
+    COORDINATORE
 }
