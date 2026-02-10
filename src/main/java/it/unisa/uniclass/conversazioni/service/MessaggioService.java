@@ -8,6 +8,7 @@ import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Utente;
 import it.unisa.uniclass.utenti.service.UserDirectory; // INTERFACCIA
 import jakarta.ejb.EJB;
+import jakarta.ejb.LocalBean;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.NoResultException;
 
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Stateless
+@LocalBean
 public class MessaggioService {
 
     @EJB(beanName = "MessaggioDAO")

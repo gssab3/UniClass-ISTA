@@ -45,14 +45,21 @@ public class ConversazioniServlet extends HttpServlet {
             if (accademicoSelf != null) {
                 String matricola = accademicoSelf.getMatricola();
 
+
                 List<Messaggio> messaggiRicevuti = messaggioService.trovaMessaggiRicevuti(matricola);
                 List<Messaggio> messaggiInviati = messaggioService.trovaMessaggiInviati(matricola);
                 List<Messaggio> avvisi = messaggioService.trovaAvvisi();
 
+                // Combina messaggi ricevuti e inviati per la lista conversazioni
+                List<Messaggio> tuttiMessaggi = new java.util.ArrayList<>();
+                tuttiMessaggi.addAll(messaggiRicevuti);
+                tuttiMessaggi.addAll(messaggiInviati);
+
                 request.setAttribute("accademicoSelf", accademicoSelf);
                 request.setAttribute("messaggiRicevuti", messaggiRicevuti);
                 request.setAttribute("messaggiInviati", messaggiInviati);
-                request.setAttribute("messaggi", avvisi);
+                request.setAttribute("messaggi", tuttiMessaggi);
+                request.setAttribute("avvisi", avvisi);
 
                 request.getRequestDispatcher("Conversazioni.jsp").forward(request, response);
             } else {
