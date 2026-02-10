@@ -13,5 +13,6 @@ public enum Tipo {
     /**
      * Rappresenta uno Accademico.
      */
-    Accademico
+    Accademico,
+    PersonaleTA
 }
