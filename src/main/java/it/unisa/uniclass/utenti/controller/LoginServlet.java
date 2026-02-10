@@ -1,37 +1,24 @@
 package it.unisa.uniclass.utenti.controller;
 
+import it.unisa.uniclass.common.exceptions.AuthenticationException;
 import it.unisa.uniclass.common.security.CredentialSecurity;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.PersonaleTA;
 import it.unisa.uniclass.utenti.model.Utente;
-import jakarta.servlet.annotation.*;
-import jakarta.servlet.http.*;
+import it.unisa.uniclass.utenti.service.UtenteService;
+import jakarta.ejb.EJB;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
 @WebServlet(name = "loginServlet", value = "/Login")
-public class LoginServlet extends HttpServlet{
+public class LoginServlet extends HttpServlet {
 
-
-    private AccademicoService accademicoService;
-    private PersonaleTAService personaleTAService;
-
-    public void setAccademicoService(AccademicoService accademicoService) {
-        this.accademicoService = accademicoService;
-    }
-
-    public void setPersonaleTAService(PersonaleTAService personaleTAService) {
-        this.personaleTAService = personaleTAService;
-    }
-
-    protected AccademicoService getAccademicoService() {
-        return new AccademicoService();
-    }
-
-    protected PersonaleTAService getPersonaleTAService() {
-        return new PersonaleTAService();
-    }
-
+    @EJB
+    private UtenteService utenteService;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
@@ -41,57 +28,44 @@ public class LoginServlet extends HttpServlet{
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
-            if(accademicoService == null) {
-                accademicoService = new AccademicoService();
-            }
-            if(personaleTAService == null) {
-                personaleTAService = new PersonaleTAService();
-            }
             String email = request.getParameter("email");
-            //Password non hashata, così come viene digitata
-            String password = request.getParameter("password");
+            String passwordRaw = request.getParameter("password");
 
-            //password hashata, da come viene digitata all'hashing
-            password = CredentialSecurity.hashPassword(password);
-            Accademico user1 = accademicoService.trovaEmailPassUniclass(email, password);
-            PersonaleTA user2 = personaleTAService.trovaEmailPass(email,password);
-            Utente user = null;
+            // Hash della password (se il DB contiene password hashate)
+            String password = CredentialSecurity.hashPassword(passwordRaw);
 
+            try {
+                // Unico punto di accesso per il login
+                Utente user = utenteService.login(email, password);
 
-            /*
-            Si deve prima cercare di capire quale user è null. Quello non null bisogna vedere se è accademico (in quel caso controllare se
-            è attivato, altrimenti senza password c'è errore), altrimenti vedere se è personaleTA (esso non viene attivato, c'è e basta)
-             */
-            if(user1 == null && user2 == null){
-                response.sendRedirect(request.getContextPath() + "/Login.jsp?action=error");
-                return;
-            } else if(user1 != null && user2 == null){
-                if(user1.isAttivato()) {
-                    user = user1;
-                }else if(user1.getPassword() == null){
-                    response.sendRedirect(request.getContextPath() + "/Login.jsp?action=notactivated");
-                    return;
+                // Controllo specifico per Accademici (devono essere attivati)
+                if (user instanceof Accademico) {
+                    Accademico acc = (Accademico) user;
+                    if (!acc.isAttivato()) {
+                        response.sendRedirect(request.getContextPath() + "/Login.jsp?action=notactivated");
+                        return;
+                    }
                 }
-            } else if(user1 == null && user2 != null) {
-                user = user2;
-            }
 
-
-            if (user != null) {
+                // Login successo
                 HttpSession session = request.getSession(true);
                 session.setAttribute("currentSessionUser", user);
+                // Salviamo anche l'email per compatibilità con altre servlet vecchie
+                session.setAttribute("utenteEmail", user.getEmail());
+
                 response.sendRedirect(request.getContextPath() + "/Home");
-                return;
-            } else {
+
+            } catch (AuthenticationException e) {
+                // Credenziali errate
                 response.sendRedirect(request.getContextPath() + "/Login.jsp?action=error");
-                return;
             }
+
         } catch (IOException e) {
             request.getServletContext().log("Error processing login request", e);
             try {
                 response.sendRedirect(request.getContextPath() + "/Login.jsp?action=error");
             } catch (IOException ioException) {
-                request.getServletContext().log("Failed to redirect after error", ioException);
+                // ignore
             }
         }
     }

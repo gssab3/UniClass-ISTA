@@ -40,8 +40,9 @@ import java.util.ArrayList;
                 "WHERE cl.id = :corsoLaureaId " +
                 "AND r.id = :restoId " +
                 "AND a.id = :annoId AND l.semestre = :semestre"),
-        @NamedQuery(name = "Lezione.trovaLezioniDocente", query = "SELECT l FROM Lezione l JOIN l.docenti d WHERE d.nome = :nomeDocente")
-})
+
+        @NamedQuery(name = "Lezione.trovaLezioniDocente", query = "SELECT l FROM Lezione l JOIN l.accademici a WHERE a.nome = :nomeDocente")})
+
 public class Lezione implements Serializable {
 
     /**

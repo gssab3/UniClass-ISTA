@@ -8,6 +8,7 @@ import it.unisa.uniclass.orari.service.AnnoDidatticoService;
 import it.unisa.uniclass.orari.service.CorsoLaureaService;
 import it.unisa.uniclass.orari.service.LezioneService;
 import it.unisa.uniclass.orari.service.RestoService;
+import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +21,12 @@ import java.util.List;
 @WebServlet(name = "cercaOrarioServlet", value = "/cercaOrario")
 public class cercaOrario extends HttpServlet {
 
+    // Injection dei servizi
+    @EJB private CorsoLaureaService corsoLaureaService;
+    @EJB private RestoService restoService;
+    @EJB private AnnoDidatticoService annoDidatticoService;
+    @EJB private LezioneService lezioneService;
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -27,31 +34,38 @@ public class cercaOrario extends HttpServlet {
             String restoNome = request.getParameter("resto");
             String annoNome = request.getParameter("anno");
 
-            CorsoLaureaService corsoLaureaService = new CorsoLaureaService();
+            // 1. Recupero Corso di Laurea
             CorsoLaurea corsoLaurea = corsoLaureaService.trovaCorsoLaurea(corsoNome);
+            if (corsoLaurea == null) {
+                throw new IllegalArgumentException("Corso di laurea non trovato: " + corsoNome);
+            }
 
-
-            //Prendo il resto
-            RestoService restoService = new RestoService();
+            // 2. Recupero Resto
             Resto resto = restoService.trovaRestoNomeCorso(restoNome, corsoLaurea);
 
-            //Prendo l'anno di quel certo corso (e l'anno ha un certo nome)
-            AnnoDidatticoService annoDidatticoService = new AnnoDidatticoService();
-            AnnoDidattico annoDidattico = annoDidatticoService.trovaTuttiCorsoLaureaNome(corsoLaurea.getId(),annoNome);
+            // 3. Recupero Anno
+            AnnoDidattico annoDidattico = annoDidatticoService.trovaTuttiCorsoLaureaNome(corsoLaurea.getId(), annoNome);
 
-            //Prendo le lezioni di quel corsoLaurea, quel resto e quell'anno
-            LezioneService lezioneService = new LezioneService();
-            List<Lezione> lezioni = lezioneService.trovaLezioniCorsoLaureaRestoAnno(corsoLaurea.getId(),resto.getId(),annoDidattico.getId());
+            if (resto != null && annoDidattico != null) {
+                // 4. Recupero Lezioni
+                List<Lezione> lezioni = lezioneService.trovaLezioniCorsoLaureaRestoAnno(
+                        corsoLaurea.getId(), resto.getId(), annoDidattico.getId()
+                );
 
-            lezioni.sort(Comparator.comparing(Lezione::getGiorno).thenComparing(Lezione::getOraInizio));
+                // Ordinamento (Java 8 stream style o classico, mantengo il tuo)
+                lezioni.sort(Comparator.comparing(Lezione::getGiorno).thenComparing(Lezione::getOraInizio));
 
-
-            request.setAttribute("lezioni", lezioni);
-            request.setAttribute("corsoLaurea", corsoLaurea);
-            request.setAttribute("resto", resto);
-            request.setAttribute("anno", annoDidattico);
+                request.setAttribute("lezioni", lezioni);
+                request.setAttribute("corsoLaurea", corsoLaurea);
+                request.setAttribute("resto", resto);
+                request.setAttribute("anno", annoDidattico);
+            } else {
+                // Gestione caso dati mancanti (opzionale: messaggio errore specifico)
+                request.setAttribute("error", "Dati di ricerca non validi (Resto o Anno non trovati).");
+            }
 
             request.getRequestDispatcher("/OrarioSingolo.jsp").forward(request, response);
+
         } catch (Exception e) {
             request.getServletContext().log("Error processing orario request", e);
             try {
@@ -66,5 +80,4 @@ public class cercaOrario extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         doPost(request, response);
     }
-
 }

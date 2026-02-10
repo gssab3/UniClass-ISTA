@@ -1,5 +1,8 @@
 package it.unisa.uniclass.utenti.controller;
 
+import it.unisa.uniclass.utenti.model.Utente;
+import it.unisa.uniclass.utenti.service.UtenteService;
+import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,34 +15,32 @@ import java.util.List;
 @WebServlet(name = "GetEmailServlet", value = "/GetEmailServlet")
 public class GetEmailServlet extends HttpServlet {
 
+    @EJB
+    private UtenteService utenteService;
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-        AccademicoService accademicoService = new AccademicoService();
-
         try {
-            List<String> emails = accademicoService.retrieveEmail();
+            // Recuperiamo tutti gli utenti per estrarre le email
+            List<Utente> utenti = utenteService.getTuttiGliUtenti();
+            JSONArray jsonArray = new JSONArray();
 
-            JSONArray jsonArray = new JSONArray(emails);
+            for(Utente u : utenti) {
+                jsonArray.put(u.getEmail());
+            }
 
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");
-
             resp.getWriter().write(jsonArray.toString());
+
         } catch (Exception e) {
             req.getServletContext().log("Error retrieving emails", e);
-
-            // Gestione degli errori
             try {
                 JSONObject errorResponse = new JSONObject();
                 errorResponse.put("error", "Errore durante il recupero delle email.");
-
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                resp.setContentType("application/json");
-                resp.setCharacterEncoding("UTF-8");
                 resp.getWriter().write(errorResponse.toString());
-            } catch (Exception innerException) {
-                req.getServletContext().log("Failed to send error response", innerException);
-            }
+            } catch (Exception ignored) {}
         }
     }
 

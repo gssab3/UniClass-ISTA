@@ -3,7 +3,10 @@ package it.unisa.uniclass.utenti.controller;
 import it.unisa.uniclass.common.security.CredentialSecurity;
 import it.unisa.uniclass.common.security.PasswordGenerator;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Tipo;
+import it.unisa.uniclass.utenti.model.Ruolo; // Assumo si usi Ruolo ora
+import it.unisa.uniclass.utenti.model.Utente;
+import it.unisa.uniclass.utenti.service.UtenteService;
+import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,90 +17,71 @@ import java.io.IOException;
 @WebServlet(name = "AttivaUtentiServlet", value = "/AttivaUtentiServlet")
 public class AttivaUtentiServlet extends HttpServlet {
 
-    private AccademicoService accademicoService;
-
-    // This method is added for testing purposes
-    public void setAccademicoService(AccademicoService accademicoService) {
-        this.accademicoService = accademicoService;
-    }
-
-    public AttivaUtentiServlet() {
-        accademicoService = new AccademicoService();
-    }
-
-    public AttivaUtentiServlet(AccademicoService acc) {
-        accademicoService = acc;
-    }
-
-    // This method is added for testing purposes
-    public void doPostPublic(HttpServletRequest req, HttpServletResponse resp) {
-        doPost(req, resp);
-    }
-
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-        doPost(req, resp);
-    }
+    @EJB
+    private UtenteService utenteService;
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
         try {
             String param = req.getParameter("param");
 
-            if(param.equals("add")){
-                String email = (String) req.getParameter("email");
-                String matricola = (String) req.getParameter("matricola");
-                String tiporeq = (String) req.getParameter("tipo");
+            if ("add".equals(param)) {
+                String email = req.getParameter("email");
+                String matricola = req.getParameter("matricola");
+                String ruoloReq = req.getParameter("tipo"); // Stringa dalla view (es. "Studente")
 
-                Accademico accademicoEmail = accademicoService.trovaEmailUniClass(email);
-                Accademico accademicoMatricola = accademicoService.trovaAccademicoUniClass(matricola);
-                Accademico accademico = null;
-                Tipo tipo = null;
-                if(tiporeq.equals("Studente")) {
-                    tipo = Tipo.Studente;
-                }
-                else if(tiporeq.equals("Docente")) {
-                    tipo = Tipo.Docente;
-                }
-                else if(tiporeq.equals("Coordinatore")) {
-                    tipo = Tipo.Coordinatore;
-                }
+                Utente utente = utenteService.getUtenteByEmail(email);
 
-                if(accademicoEmail != null && accademicoMatricola != null &&
-                        accademicoEmail.getEmail().equals(accademicoMatricola.getEmail()) &&
-                        accademicoEmail.getMatricola().equals(accademicoMatricola.getMatricola())){
-                    if(accademicoEmail.getTipo().equals(tipo)) {
-                        accademico = accademicoEmail;
+                if (utente instanceof Accademico) {
+                    Accademico acc = (Accademico) utente;
+
+                    // Verifica corrispondenza matricola e ruolo
+                    // Nota: Qui bisognerebbe mappare la stringa ruoloReq all'Enum Ruolo
+                    boolean ruoloMatch = false;
+                    if (acc.getRuolo() != null && acc.getRuolo().toString().equalsIgnoreCase(ruoloReq)) {
+                        ruoloMatch = true;
+                    }
+
+                    if (acc.getMatricola().equals(matricola) && ruoloMatch) {
                         String password = PasswordGenerator.generatePassword(8);
 
-                        accademico.setAttivato(true);
-                        accademico.setPassword(CredentialSecurity.hashPassword(password));
+                        acc.setAttivato(true);
+                        acc.setPassword(CredentialSecurity.hashPassword(password));
 
-                        accademicoService.aggiungiAccademico(accademico);
-                        System.out.println("\n\n\nPassword generata per l'attivato: " + password + "\n\n\n");
+                        // Il metodo aggiornaUtente nel service gestisce il merge
+                        utenteService.aggiornaUtente(acc);
+
+                        System.out.println("Utente attivato. Password generata: " + password);
                         resp.sendRedirect(req.getContextPath() + "/PersonaleTA/AttivaUtenti.jsp");
                     } else {
                         resp.sendRedirect(req.getContextPath() + "/PersonaleTA/AttivaUtenti.jsp?action=error");
                     }
                 } else {
+                    // Non trovato o non accademico
                     resp.sendRedirect(req.getContextPath() + "/PersonaleTA/AttivaUtenti.jsp?action=error");
                 }
-            } else if(param.equals("remove")){
-                String email = (String) req.getParameter("email-remove");
 
-                Accademico accademico = accademicoService.trovaEmailUniClass(email);
-                if (accademico != null) {
-                    accademicoService.cambiaAttivazione(accademico, false);
+            } else if ("remove".equals(param)) {
+                String email = req.getParameter("email-remove");
+                Utente utente = utenteService.getUtenteByEmail(email);
+
+                if (utente instanceof Accademico) {
+                    Accademico acc = (Accademico) utente;
+                    acc.setAttivato(false);
+                    utenteService.aggiornaUtente(acc);
                 }
                 resp.sendRedirect(req.getContextPath() + "/PersonaleTA/AttivaUtenti.jsp");
             }
-        } catch (IOException e) {
-            req.getServletContext().log("Error processing user activation request", e);
+        } catch (Exception e) {
+            req.getServletContext().log("Error processing user activation", e);
             try {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred processing your request");
-            } catch (IOException ioException) {
-                req.getServletContext().log("Failed to send error response", ioException);
-            }
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            } catch (IOException ignored) {}
         }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
+        doPost(req, resp);
     }
 }

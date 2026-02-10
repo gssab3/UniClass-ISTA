@@ -3,8 +3,9 @@ package it.unisa.uniclass.conversazioni.controller;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
+import it.unisa.uniclass.utenti.model.Utente;
+import it.unisa.uniclass.utenti.service.UtenteService;
 import jakarta.ejb.EJB;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,66 +19,53 @@ import java.util.List;
 public class ConversazioniServlet extends HttpServlet {
 
     @EJB
-    //@ spec_public
-    //@ nullable
     private MessaggioService messaggioService;
 
-    /**
-     * Setter per iniettare il MessaggioService (utile per i test).
-     * @param messaggioService il service da iniettare
-     */
-    //@ requires messaggioService != null;
-    //@ ensures this.messaggioService == messaggioService;
-    public void setMessaggioService(MessaggioService messaggioService) {
-        this.messaggioService = messaggioService;
-    }
+    @EJB
+    private UtenteService utenteService;
 
-    /**
-     * Gestisce le richieste GET delegando al metodo doPost.
-     * @param request la richiesta HTTP
-     * @param response la risposta HTTP
-     */
-    //@ requires request != null;
-    //@ requires response != null;
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) {
         doPost(request, response);
     }
 
-    /**
-     * Gestisce le richieste POST per visualizzare le conversazioni.
-     * Recupera i messaggi inviati, ricevuti e gli avvisi per l'utente corrente.
-     * @param request la richiesta HTTP
-     * @param response la risposta HTTP
-     */
-    //@ requires request != null;
-    //@ requires response != null;
-    //@ requires request.getSession() != null;
-    //@ requires request.getSession().getAttribute("utenteEmail") != null;
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
             HttpSession session = request.getSession();
+            if (session.getAttribute("utenteEmail") == null) {
+                response.sendRedirect("Login.jsp");
+                return;
+            }
+
             String email = session.getAttribute("utenteEmail").toString();
 
+            // Refactoring: Uso UtenteService invece di new AccademicoService()
+            Utente u = utenteService.getUtenteByEmail(email);
 
-            AccademicoService accademicoService = new AccademicoService();
-            Accademico accademicoSelf = accademicoService.trovaEmailUniClass(email);
+            if (u instanceof Accademico) {
+                Accademico accademicoSelf = (Accademico) u;
+                String matricola = accademicoSelf.getMatricola();
 
-            //Messaggi ricevuti dall'accademicoSelf
-            List<Messaggio> messaggiRicevuti = messaggioService.trovaMessaggiRicevuti(email);
-            //Messaggi inviati
-            List<Messaggio> messaggiInviati = messaggioService.trovaMessaggiInviati(email);
+                // Messaggi ricevuti dall'accademicoSelf
+                List<Messaggio> messaggiRicevuti = messaggioService.trovaMessaggiRicevuti(matricola);
+                // Messaggi inviati
+                List<Messaggio> messaggiInviati = messaggioService.trovaMessaggiInviati(matricola);
 
-            List<Messaggio> messaggi = messaggioService.trovaAvvisi();
+                List<Messaggio> avvisi = messaggioService.trovaAvvisi();
 
-            request.setAttribute("accademicoSelf", accademicoSelf);
-            request.setAttribute("messaggiRicevuti", messaggiRicevuti);
-            request.setAttribute("messaggiInviati", messaggiInviati);
-            request.setAttribute("messaggi", messaggi);
+                request.setAttribute("accademicoSelf", accademicoSelf);
+                request.setAttribute("messaggiRicevuti", messaggiRicevuti);
+                request.setAttribute("messaggiInviati", messaggiInviati);
+                request.setAttribute("messaggi", avvisi);
 
-            request.getRequestDispatcher("Conversazioni.jsp").forward(request, response);
-        } catch (ServletException | IOException e) {
+                request.getRequestDispatcher("Conversazioni.jsp").forward(request, response);
+            } else {
+                // Gestione caso utente non accademico (es. admin puro)
+                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Accesso consentito solo agli accademici.");
+            }
+
+        } catch (Exception e) {
             request.getServletContext().log("Error processing conversazioni request", e);
             try {
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred processing your request");

@@ -1,60 +1,45 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-
-<%@ page import="it.unisa.uniclass.utenti.model.Utente, it.unisa.uniclass.utenti.model.Tipo" %>
-<%@ page import="it.unisa.uniclass.orari.model.CorsoLaurea" %>
-<%@ page import="java.util.List" %>
-<%@ page import="it.unisa.uniclass.conversazioni.model.Messaggio" %>
+<%@ page import="it.unisa.uniclass.utenti.model.Utente" %>
 <%@ page import="it.unisa.uniclass.utenti.model.Accademico" %>
-<%@ page import="it.unisa.uniclass.utenti.service.AccademicoService" %>
+<%@ page import="it.unisa.uniclass.utenti.model.Ruolo" %>
+<%@ page import="it.unisa.uniclass.conversazioni.model.Messaggio" %>
+<%@ page import="java.util.List" %>
 <%@ page import="java.util.ArrayList" %>
 
 <%
     /* Sessione HTTP */
-    HttpSession sessione = request.getSession(true);
-    Utente user = (Utente) sessione.getAttribute("currentSessionUser");
-    if(user != null){
-        session.setAttribute("utenteEmail", user.getEmail());
-    }
-
-    /* Controllo tipo utente */
-    Tipo tipoUtente = null;
-
-    // Logica di accesso originale mantenuta
-    if(user != null && ((user.getTipo() != Tipo.Docente) || (user.getTipo() != Tipo.Coordinatore) || (user.getTipo()) != Tipo.Studente)) {
-        tipoUtente = (Tipo) user.getTipo();
-    } else if (user != null && (user.getTipo() == Tipo.PersonaleTA)) {
-        response.sendRedirect("ErroreAccesso.jsp");
-        return;
-    } else {
+    HttpSession sessione = request.getSession(false);
+    if (sessione == null || sessione.getAttribute("currentSessionUser") == null) {
         response.sendRedirect("Login.jsp");
         return;
     }
 
-    Long id = (Long) request.getAttribute("id");
-    String email = (String) request.getAttribute("email");
+    Utente user = (Utente) sessione.getAttribute("currentSessionUser");
 
-    Accademico accademico = (Accademico) session.getAttribute("accademico");
-    Accademico accademicoSelf = (Accademico) session.getAttribute("accademicoSelf");
+    /* Verifica Accesso: Solo Accademici */
+    if (!(user instanceof Accademico)) {
+        response.sendRedirect("ErroreAccesso.jsp");
+        return;
+    }
 
-    // Recupero messaggi dalla sessione (con fallback per evitare NullPointerException)
-    List<Messaggio> messaggigi = (List<Messaggio>) session.getAttribute("messaggigi");
+    Accademico accademicoLoggato = (Accademico) user;
+
+    // Recupero attributi passati dalla Servlet
+    Accademico interlocutore = (Accademico) request.getAttribute("accademico"); // "accademico" nel controller era l'altro
+    if (interlocutore == null) {
+        // Fallback sessione se request è vuota (per compatibilità col vecchio codice)
+        interlocutore = (Accademico) session.getAttribute("accademico");
+    }
+
+    List<Messaggio> messaggigi = (List<Messaggio>) request.getAttribute("messaggigi");
     if (messaggigi == null) {
-        messaggigi = new ArrayList<Messaggio>();
+        messaggigi = (List<Messaggio>) session.getAttribute("messaggigi"); // Fallback
     }
-
-    List<Messaggio> messaggi = new ArrayList<Messaggio>();
-    List<Messaggio> messaggiInviati;
-    List<Messaggio> messaggiRicevuti;
-
-    if (tipoUtente == Tipo.Docente || tipoUtente == Tipo.Studente || tipoUtente == Tipo.Coordinatore){
-        messaggiInviati = (List<Messaggio>) request.getAttribute("messaggiInviati");
-        messaggiRicevuti = (List<Messaggio>) request.getAttribute("messaggiRicevuti");
-    }
+    if (messaggigi == null) messaggigi = new ArrayList<>();
 %>
 
 <!DOCTYPE html>
 <html lang="it" xml:lang="it">
-
 <head>
     <title>UniClass Chat</title>
     <script src="scripts/sidebar.js" type="text/javascript"></script>
@@ -73,12 +58,9 @@
     </a>
     <p>Menu</p>
     <ul id="menu">
-
-        <%-- Solo Studente vede Orari --%>
-        <% if (tipoUtente != null && tipoUtente.equals(Tipo.Studente)) { %>
+        <% if (accademicoLoggato.getRuolo() == Ruolo.STUDENTE) { %>
         <li id="orari"><a href="servelt">Orari</a></li>
         <% } %>
-
         <li id="aule"><a href="aula.jsp">Aule</a></li>
         <li id="conversazioni"><a href="Conversazioni">Conversazioni</a></li>
         <li id="mappa"><a href="mappa.jsp">Mappa</a></li>
@@ -92,16 +74,22 @@
 
 <div class="chat-container">
     <div class="chat-header">
-        <h2><%-- Nome Interlocutore opzionale qui --%></h2>
+        <h2>
+            <% if (interlocutore != null) { %>
+            Chat con: <%= interlocutore.getNome() %> <%= interlocutore.getCognome() %>
+            <% } else { %>
+            Seleziona un utente
+            <% } %>
+        </h2>
     </div>
 
     <div id="chat-box" class="chat-box">
         <%
-            if (accademicoSelf != null && accademico != null) {
+            if (interlocutore != null) {
                 for (Messaggio messaggio : messaggigi) {
 
-                    // 1. Gestione Visualizzazione Topic (Opzionale)
-                    if (messaggio.getTopic() != null && !messaggio.getTopic().getNome().equals("VUOTO")) {
+                    // Controllo Topic
+                    if (messaggio.getTopic() != null && !"VUOTO".equals(messaggio.getTopic().getNome())) {
         %>
         <div class="message red-text">
             <span class="message-text">[<%= messaggio.getTopic().getNome()%>]</span>
@@ -109,14 +97,17 @@
         <%
             }
 
-            // 2. Gestione Classe CSS (Self vs Author)
-            String cssClass = "author"; // Default (messaggio ricevuto)
-            if (messaggio.getAutore().getEmail().equals(accademicoSelf.getEmail())) {
-                cssClass = "self"; // Messaggio inviato da me
-            } else if (messaggio.getAutore().getEmail().equals(accademico.getEmail())) {
+            // Determina classe CSS (self vs author)
+            String cssClass = "author";
+            if (messaggio.getAutore() != null &&
+                    messaggio.getAutore().getEmail().equals(accademicoLoggato.getEmail())) {
+                cssClass = "self";
+            } else if (messaggio.getAutore() != null &&
+                    messaggio.getAutore().getEmail().equals(interlocutore.getEmail())) {
                 cssClass = "author";
             } else {
-                continue; // Salta messaggi non pertinenti alla coppia (sicurezza)
+                // Messaggio non pertinente a questa conversazione specifica, salto
+                continue;
             }
         %>
         <div class="message <%= cssClass %>">
@@ -129,11 +120,11 @@
     </div>
 
     <div class="chat-input-container">
-        <label for="testo" style="display:none;">Messaggio</label> <%-- Label nascosta per accessibilità --%>
+        <label for="testo" style="display:none;">Messaggio</label>
         <input type="text" id="testo" name="testo" class="chat-input" placeholder="Scrivi un messaggio..." required>
 
-        <% if (accademico != null) { %>
-        <input type="hidden" id="emailInvio" name="emailInvio" value="<%=accademico.getEmail()%>">
+        <% if (interlocutore != null) { %>
+        <input type="hidden" id="emailInvio" name="emailInvio" value="<%= interlocutore.getEmail() %>">
         <% } %>
 
         <button type="button" class="send-button" onclick="sendMessage()">Invia</button>
@@ -141,16 +132,22 @@
 </div>
 
 <script>
-    // Funzione helper per l'invio (più pulita dell'inline onclick)
     function sendMessage() {
         var testo = document.getElementById('testo').value;
-        var email = document.getElementById('emailInvio').value;
+        var emailInvioElem = document.getElementById('emailInvio');
+
+        if (!emailInvioElem) {
+            alert("Nessun destinatario selezionato");
+            return;
+        }
+
+        var email = emailInvioElem.value;
         if(testo.trim() !== "") {
+            // Assicurati che l'URL punti alla servlet corretta refactorizzata
             window.location.href = 'inviaMessaggioChatServlet?testo=' + encodeURIComponent(testo) + '&emailInvio=' + encodeURIComponent(email);
         }
     }
 
-    // Aggiunge supporto tasto Enter
     document.getElementById("testo").addEventListener("keypress", function(event) {
         if (event.key === "Enter") {
             event.preventDefault();

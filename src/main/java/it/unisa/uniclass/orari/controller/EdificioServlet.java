@@ -2,32 +2,26 @@ package it.unisa.uniclass.orari.controller;
 
 import it.unisa.uniclass.orari.model.Aula;
 import it.unisa.uniclass.orari.service.AulaService;
+import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import javax.naming.NamingException;
 import java.io.IOException;
 import java.util.List;
 
 @WebServlet(name = "EdificioServlet", value = "/EdificioServlet")
 public class EdificioServlet extends HttpServlet {
 
+    // Injection gestita dal container: il service avrà i suoi DAO pronti
+    @EJB
+    private AulaService aulaService;
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
             String edificio = req.getParameter("ed");
-
-            AulaService aulaService = null;
-            try {
-                aulaService = new AulaService();
-            } catch (NamingException e) {
-                req.getServletContext().log("Error creating AulaService", e);
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred processing your request");
-                return;
-            }
-
             List<Aula> aule = aulaService.trovaAuleEdificio(edificio);
 
             req.setAttribute("aule", aule);

@@ -2,68 +2,37 @@
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
              version="3.0">
-    <!--
-    Persistence Unit del database universitario
-    <persistence-unit name="DBUniversityPU" transaction-type="JTA">
-        <jta-data-source>jdbc/DBUniversity</jta-data-source>
-        <class>it.unisa.uniclass.orari.model.Resto</class>
-        <properties> -->
-            <!-- Configurazioni per PostgreSQL
-            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/dbuniversity"/>
-            <property name="jakarta.persistence.jdbc.user" value="postgres"/>
-            <property name="jakarta.persistence.jdbc.password" value="password"/>
-            -->
 
-            <!-- Configurazione per EclipseLink
-            <property name="eclipselink.target-database" value="PostgreSQL"/>
-            <property name="eclipselink.ddl-generation" value="create-tables"/> --> <!-- Crea le tabelle automaticamente -->
-    <!--<property name="eclipselink.ddl-generation.output-mode" value="database"/>  Usa il DB per generare le tabelle -->
-            <!-- Logging
-            <property name="eclipselink.logging.level" value="FINE"/>
-            <property name="eclipselink.logging.level.sql" value="FINE"/>
-            <property name="eclipselink.logging.logger" value="DefaultLogger"/>
-            -->
-        <!-- </properties>
-    </persistence-unit> -->
-
-    <!-- Persistence Unit del database di UniClass -->
     <persistence-unit name="DBUniClassPU" transaction-type="JTA">
         <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
         <jta-data-source>jdbc/DBUniClass</jta-data-source>
 
         <class>it.unisa.uniclass.conversazioni.model.Messaggio</class>
         <class>it.unisa.uniclass.conversazioni.model.Topic</class>
+
         <class>it.unisa.uniclass.orari.model.CorsoLaurea</class>
         <class>it.unisa.uniclass.orari.model.Corso</class>
         <class>it.unisa.uniclass.orari.model.Lezione</class>
         <class>it.unisa.uniclass.orari.model.AnnoDidattico</class>
         <class>it.unisa.uniclass.orari.model.Aula</class>
         <class>it.unisa.uniclass.orari.model.Resto</class>
-        <class>it.unisa.uniclass.utenti.model.Accademico</class>
-        <class>it.unisa.uniclass.utenti.model.Coordinatore</class>
-        <class>it.unisa.uniclass.utenti.model.Docente</class>
-        <class>it.unisa.uniclass.utenti.model.Studente</class>
+
         <class>it.unisa.uniclass.utenti.model.Utente</class>
+        <class>it.unisa.uniclass.utenti.model.Accademico</class>
 
         <properties>
-            <!-- Configurazioni per PostgreSQL -->
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://postgres:5432/dbuniclass"/>
             <property name="jakarta.persistence.jdbc.user" value="postgres"/>
             <property name="jakarta.persistence.jdbc.password" value="password"/>
 
-            <!-- Configurazione per EclipseLink -->
             <property name="eclipselink.target-database" value="PostgreSQL"/>
-            <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/> <!-- Crea le tabelle automaticamente -->
-            <property name="eclipselink.ddl-generation.output-mode" value="database"/> <!-- Usa il DB per generare le tabelle -->
+            <property name="eclipselink.ddl-generation" value="drop-and-create-tables"/>
+            <property name="eclipselink.ddl-generation.output-mode" value="database"/>
 
-            <!-- Logging -->
             <property name="eclipselink.logging.level" value="FINE"/>
             <property name="eclipselink.logging.level.sql" value="FINE"/>
             <property name="eclipselink.logging.logger" value="DefaultLogger"/>
         </properties>
     </persistence-unit>
-
-
 </persistence>

@@ -1,12 +1,13 @@
 package it.unisa.uniclass.utenti.controller;
 
-import jakarta.servlet.annotation.*;
-import jakarta.servlet.http.*;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
-
-// Mappatura della servlet
 @WebServlet("/LogoutServlet")
 public class LogoutServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -18,15 +19,9 @@ public class LogoutServlet extends HttpServlet {
             if (session != null) {
                 session.invalidate();
             }
-
             response.sendRedirect(request.getContextPath() + "/Home");
         } catch (IOException e) {
             request.getServletContext().log("Error processing logout request", e);
-            try {
-                response.sendRedirect(request.getContextPath() + "/Home");
-            } catch (IOException ioException) {
-                request.getServletContext().log("Failed to redirect after logout error", ioException);
-            }
         }
     }
 
@@ -35,4 +30,3 @@ public class LogoutServlet extends HttpServlet {
         doGet(request, response);
     }
 }
-

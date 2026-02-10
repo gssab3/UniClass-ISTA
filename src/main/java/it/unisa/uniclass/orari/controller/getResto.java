@@ -4,6 +4,7 @@ import it.unisa.uniclass.orari.model.CorsoLaurea;
 import it.unisa.uniclass.orari.model.Resto;
 import it.unisa.uniclass.orari.service.CorsoLaureaService;
 import it.unisa.uniclass.orari.service.RestoService;
+import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,33 +19,35 @@ import java.util.List;
 @WebServlet(name = "getResto", value = "/getResto")
 public class getResto extends HttpServlet {
 
+    @EJB
+    private CorsoLaureaService corsoLaureaService;
+
+    @EJB
+    private RestoService restoService;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         try {
-            PrintWriter printWriter = response.getWriter();
-
             String corsoLaurea = request.getParameter("corsoLaurea");
-            CorsoLaureaService corsoLaureaService = new CorsoLaureaService();
             CorsoLaurea corsoL = corsoLaureaService.trovaCorsoLaurea(corsoLaurea);
 
             JSONArray jsonArray = new JSONArray();
 
-            RestoService restoService = new RestoService();
+            if (corsoL != null) {
+                List<Resto> resti = restoService.trovaRestiCorsoLaurea(corsoL);
 
-            List<Resto> resti = restoService.trovaRestiCorsoLaurea(corsoL);
-
-
-            for(Resto resto : resti) {
-                JSONObject restoJson = new JSONObject();
-                restoJson.put("id", resto.getId());
-                restoJson.put("nome", resto.getNome());
-                jsonArray.put(restoJson);
+                for(Resto resto : resti) {
+                    JSONObject restoJson = new JSONObject();
+                    restoJson.put("id", resto.getId());
+                    restoJson.put("nome", resto.getNome());
+                    jsonArray.put(restoJson);
+                }
             }
-
 
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
 
+            PrintWriter printWriter = response.getWriter();
             printWriter.println(jsonArray.toString());
             printWriter.flush();
         } catch (Exception e) {
@@ -60,5 +63,4 @@ public class getResto extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         doGet(request, response);
     }
-
 }
