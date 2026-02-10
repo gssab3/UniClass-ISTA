@@ -3,8 +3,7 @@ package it.unisa.uniclass.conversazioni.controller;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UtenteService;
+import it.unisa.uniclass.utenti.service.UserDirectory; // INTERFACCIA
 import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,7 +21,7 @@ public class ConversazioniServlet extends HttpServlet {
     private MessaggioService messaggioService;
 
     @EJB
-    private UtenteService utenteService;
+    private UserDirectory userDirectory; // Facade
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) {
@@ -40,18 +39,14 @@ public class ConversazioniServlet extends HttpServlet {
 
             String email = session.getAttribute("utenteEmail").toString();
 
-            // Refactoring: Uso UtenteService invece di new AccademicoService()
-            Utente u = utenteService.getUtenteByEmail(email);
+            // Recupero tramite Facade
+            Accademico accademicoSelf = userDirectory.getAccademico(email);
 
-            if (u instanceof Accademico) {
-                Accademico accademicoSelf = (Accademico) u;
+            if (accademicoSelf != null) {
                 String matricola = accademicoSelf.getMatricola();
 
-                // Messaggi ricevuti dall'accademicoSelf
                 List<Messaggio> messaggiRicevuti = messaggioService.trovaMessaggiRicevuti(matricola);
-                // Messaggi inviati
                 List<Messaggio> messaggiInviati = messaggioService.trovaMessaggiInviati(matricola);
-
                 List<Messaggio> avvisi = messaggioService.trovaAvvisi();
 
                 request.setAttribute("accademicoSelf", accademicoSelf);
@@ -61,17 +56,14 @@ public class ConversazioniServlet extends HttpServlet {
 
                 request.getRequestDispatcher("Conversazioni.jsp").forward(request, response);
             } else {
-                // Gestione caso utente non accademico (es. admin puro)
                 response.sendError(HttpServletResponse.SC_FORBIDDEN, "Accesso consentito solo agli accademici.");
             }
 
         } catch (Exception e) {
             request.getServletContext().log("Error processing conversazioni request", e);
             try {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred processing your request");
-            } catch (IOException ioException) {
-                request.getServletContext().log("Failed to send error response", ioException);
-            }
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            } catch (IOException ignored) {}
         }
     }
 }

@@ -3,8 +3,7 @@ package it.unisa.uniclass.conversazioni.controller;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UtenteService;
+import it.unisa.uniclass.utenti.service.UserDirectory; // INTERFACCIA
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -24,36 +23,32 @@ public class chatServlet extends HttpServlet {
     private MessaggioService messaggioService;
 
     @EJB
-    private UtenteService utenteService;
+    private UserDirectory userDirectory;
 
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
             HttpSession session = req.getSession();
 
-            String email = req.getParameter("accademico");
+            String emailDest = req.getParameter("accademico");
             String emailSelf = req.getParameter("accademicoSelf");
 
-            // Recupero tramite servizio unificato
-            Utente uDest = utenteService.getUtenteByEmail(email);
-            Utente uSelf = utenteService.getUtenteByEmail(emailSelf);
+            // Recupero tramite Facade (con cast sicuro interno a getAccademico)
+            Accademico accademicoDest = userDirectory.getAccademico(emailDest);
+            Accademico accademicoSelf = userDirectory.getAccademico(emailSelf);
 
-            // Verifica che siano accademici (necessario per la chat)
-            if (!(uDest instanceof Accademico) || !(uSelf instanceof Accademico)) {
-                throw new ServletException("Uno degli utenti non è un Accademico abilitato alla chat.");
+            if (accademicoDest == null || accademicoSelf == null) {
+                throw new ServletException("Utenti non validi o non accademici.");
             }
 
-            Accademico accademico = (Accademico) uDest;
-            Accademico accademicoSelf = (Accademico) uSelf;
-
-            // Recupero messaggi (Nota: idealmente usare un metodo specifico nel service invece di trovaTutti)
+            // Nota: qui potresti ottimizzare creando un metodo specifico nel service
+            // invece di scaricare tutti i messaggi. Per ora manteniamo la logica legacy.
             List<Messaggio> tuttiMessaggi = messaggioService.trovaTutti();
 
             List<Messaggio> messaggiInviati = new ArrayList<>();
             List<Messaggio> messaggiRicevuti = new ArrayList<>();
 
             for(Messaggio messaggio : tuttiMessaggi) {
-                // Filtro in memoria (Legacy logic preservata)
                 if (messaggio.getDestinatario() != null &&
                         messaggio.getDestinatario().getMatricola().equals(accademicoSelf.getMatricola())) {
                     messaggiRicevuti.add(messaggio);
@@ -66,11 +61,12 @@ public class chatServlet extends HttpServlet {
 
             req.setAttribute("messaggigi", tuttiMessaggi);
             session.setAttribute("messaggigi", tuttiMessaggi);
+
             req.setAttribute("messaggiInviati", messaggiInviati);
             req.setAttribute("messaggiRicevuti", messaggiRicevuti);
 
-            req.setAttribute("accademico", accademico);
-            session.setAttribute("accademico", accademico);
+            req.setAttribute("accademico", accademicoDest);
+            session.setAttribute("accademico", accademicoDest);
 
             session.setAttribute("accademicoSelf", accademicoSelf);
             req.setAttribute("accdemicoSelf", accademicoSelf);
@@ -79,10 +75,8 @@ public class chatServlet extends HttpServlet {
         } catch (Exception e) {
             req.getServletContext().log("Error processing chat request", e);
             try {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred processing your request");
-            } catch (IOException ioException) {
-                req.getServletContext().log("Failed to send error response", ioException);
-            }
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            } catch (IOException ignored) {}
         }
     }
 

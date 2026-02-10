@@ -2,7 +2,7 @@ package it.unisa.uniclass.utenti.controller;
 
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UtenteService;
+import it.unisa.uniclass.utenti.service.UserDirectory; // USIAMO L'INTERFACCIA
 import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -18,16 +18,16 @@ import java.util.List;
 public class GetAttivati extends HttpServlet {
 
     @EJB
-    private UtenteService utenteService;
+    private UserDirectory userDirectory;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
-            List<Utente> tutti = utenteService.getTuttiGliUtenti();
+            List<Utente> tutti = userDirectory.getTuttiGliUtenti();
             JSONArray jsonArray = new JSONArray();
 
             for (Utente u : tutti) {
-                // Mostriamo solo gli accademici attivati nella lista?
+                // Filtra solo gli Accademici attivati
                 if (u instanceof Accademico) {
                     Accademico acc = (Accademico) u;
                     if (acc.isAttivato()) {

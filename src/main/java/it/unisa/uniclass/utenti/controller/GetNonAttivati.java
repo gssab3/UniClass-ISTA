@@ -2,7 +2,7 @@ package it.unisa.uniclass.utenti.controller;
 
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UtenteService;
+import it.unisa.uniclass.utenti.service.UserDirectory; // USIAMO L'INTERFACCIA
 import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -17,25 +17,26 @@ import java.util.List;
 public class GetNonAttivati extends HttpServlet {
 
     @EJB
-    private UtenteService utenteService;
+    private UserDirectory userDirectory;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
-            // Recupera tutti e filtra (o usa una query specifica se aggiunta al Service)
-            List<Utente> tutti = utenteService.getTuttiGliUtenti();
+            // Recupera tutti gli utenti tramite Facade
+            List<Utente> tutti = userDirectory.getTuttiGliUtenti();
 
             JSONArray jsonArray = new JSONArray();
 
             for (Utente u : tutti) {
+                // Filtra solo gli Accademici non attivati
                 if (u instanceof Accademico) {
                     Accademico acc = (Accademico) u;
                     if (!acc.isAttivato()) {
                         JSONObject jsonUtente = new JSONObject();
                         jsonUtente.put("email", acc.getEmail());
                         jsonUtente.put("matricola", acc.getMatricola());
-                        // Usa Ruolo se Tipo è deprecato, o mantieni Tipo se presente in Utente
-                        jsonUtente.put("tipo", acc.getRuolo().toString());
+                        // Usa toString() del Ruolo per il campo "tipo"
+                        jsonUtente.put("tipo", acc.getRuolo() != null ? acc.getRuolo().toString() : "");
                         jsonArray.put(jsonUtente);
                     }
                 }

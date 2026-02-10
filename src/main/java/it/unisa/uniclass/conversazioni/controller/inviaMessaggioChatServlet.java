@@ -4,8 +4,7 @@ import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UtenteService;
+import it.unisa.uniclass.utenti.service.UserDirectory; // INTERFACCIA
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -25,7 +24,7 @@ public class inviaMessaggioChatServlet extends HttpServlet {
     private MessaggioService messaggioService;
 
     @EJB
-    private UtenteService utenteService;
+    private UserDirectory userDirectory;
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) {
@@ -36,14 +35,10 @@ public class inviaMessaggioChatServlet extends HttpServlet {
             String emailDest = request.getParameter("emailInvio");
             String messaggioBody = request.getParameter("testo");
 
-            // Recupero Utenti e Casting
-            Utente uSelf = utenteService.getUtenteByEmail(emailSession);
-            Utente uDest = utenteService.getUtenteByEmail(emailDest);
+            Accademico accademicoSelf = userDirectory.getAccademico(emailSession);
+            Accademico accademicoDest = userDirectory.getAccademico(emailDest);
 
-            if (uSelf instanceof Accademico && uDest instanceof Accademico) {
-                Accademico accademicoSelf = (Accademico) uSelf;
-                Accademico accademicoDest = (Accademico) uDest;
-
+            if (accademicoSelf != null && accademicoDest != null) {
                 Topic top = new Topic();
                 top.setCorsoLaurea(accademicoSelf.getCorsoLaurea());
                 top.setNome("VUOTO");
@@ -57,22 +52,21 @@ public class inviaMessaggioChatServlet extends HttpServlet {
 
                 messaggioService.aggiungiMessaggio(messaggio1);
 
+                // Aggiornamento vista
                 List<Messaggio> messaggi = messaggioService.trovaTutti();
                 request.setAttribute("messaggi", messaggi);
                 request.setAttribute("accademici", messaggioService.trovaMessaggeriDiUnAccademico(accademicoSelf.getMatricola()));
 
                 response.sendRedirect("chatServlet?accademico="+accademicoDest.getEmail()+"&accademicoSelf="+accademicoSelf.getEmail());
             } else {
-                throw new ServletException("Invio messaggi limitato agli utenti accademici.");
+                throw new ServletException("Errore nel recupero degli utenti per la chat.");
             }
 
         } catch (Exception e) {
-            request.getServletContext().log("Error processing chat message request", e);
+            request.getServletContext().log("Error processing chat message", e);
             try {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred processing your request");
-            } catch (IOException ioException) {
-                request.getServletContext().log("Failed to send error response", ioException);
-            }
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            } catch (IOException ignored) {}
         }
     }
 

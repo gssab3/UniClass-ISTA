@@ -1,7 +1,7 @@
 package it.unisa.uniclass.utenti.controller;
 
 import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UtenteService;
+import it.unisa.uniclass.utenti.service.UserDirectory; // USIAMO L'INTERFACCIA
 import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -16,13 +16,13 @@ import java.util.List;
 public class GetEmailServlet extends HttpServlet {
 
     @EJB
-    private UtenteService utenteService;
+    private UserDirectory userDirectory;
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
-            // Recuperiamo tutti gli utenti per estrarre le email
-            List<Utente> utenti = utenteService.getTuttiGliUtenti();
+            // Recupero tramite Facade
+            List<Utente> utenti = userDirectory.getTuttiGliUtenti();
             JSONArray jsonArray = new JSONArray();
 
             for(Utente u : utenti) {

@@ -3,9 +3,8 @@ package it.unisa.uniclass.utenti.controller;
 import it.unisa.uniclass.common.security.CredentialSecurity;
 import it.unisa.uniclass.common.security.PasswordGenerator;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Ruolo; // Assumo si usi Ruolo ora
 import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UtenteService;
+import it.unisa.uniclass.utenti.service.UserDirectory; // USIAMO L'INTERFACCIA
 import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -18,7 +17,7 @@ import java.io.IOException;
 public class AttivaUtentiServlet extends HttpServlet {
 
     @EJB
-    private UtenteService utenteService;
+    private UserDirectory userDirectory;
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
@@ -28,47 +27,44 @@ public class AttivaUtentiServlet extends HttpServlet {
             if ("add".equals(param)) {
                 String email = req.getParameter("email");
                 String matricola = req.getParameter("matricola");
-                String ruoloReq = req.getParameter("tipo"); // Stringa dalla view (es. "Studente")
+                String ruoloReq = req.getParameter("tipo"); // Stringa dalla view (es. "STUDENTE")
 
-                Utente utente = utenteService.getUtenteByEmail(email);
+                Utente utente = userDirectory.getUser(email);
 
                 if (utente instanceof Accademico) {
                     Accademico acc = (Accademico) utente;
 
-                    // Verifica corrispondenza matricola e ruolo
-                    // Nota: Qui bisognerebbe mappare la stringa ruoloReq all'Enum Ruolo
-                    boolean ruoloMatch = false;
-                    if (acc.getRuolo() != null && acc.getRuolo().toString().equalsIgnoreCase(ruoloReq)) {
-                        ruoloMatch = true;
-                    }
+                    // Verifica corrispondenza Ruolo (Case insensitive)
+                    boolean ruoloMatch = acc.getRuolo() != null &&
+                            acc.getRuolo().toString().equalsIgnoreCase(ruoloReq);
 
-                    if (acc.getMatricola().equals(matricola) && ruoloMatch) {
+                    // Verifica Matricola e Ruolo
+                    if (acc.getMatricola() != null && acc.getMatricola().equals(matricola) && ruoloMatch) {
                         String password = PasswordGenerator.generatePassword(8);
 
                         acc.setAttivato(true);
                         acc.setPassword(CredentialSecurity.hashPassword(password));
 
-                        // Il metodo aggiornaUtente nel service gestisce il merge
-                        utenteService.aggiornaUtente(acc);
+                        // Aggiornamento tramite Facade
+                        userDirectory.updateProfile(acc);
 
-                        System.out.println("Utente attivato. Password generata: " + password);
+                        System.out.println("Utente attivato: " + email + " Pwd: " + password);
                         resp.sendRedirect(req.getContextPath() + "/PersonaleTA/AttivaUtenti.jsp");
                     } else {
                         resp.sendRedirect(req.getContextPath() + "/PersonaleTA/AttivaUtenti.jsp?action=error");
                     }
                 } else {
-                    // Non trovato o non accademico
                     resp.sendRedirect(req.getContextPath() + "/PersonaleTA/AttivaUtenti.jsp?action=error");
                 }
 
             } else if ("remove".equals(param)) {
                 String email = req.getParameter("email-remove");
-                Utente utente = utenteService.getUtenteByEmail(email);
+                Utente utente = userDirectory.getUser(email);
 
                 if (utente instanceof Accademico) {
                     Accademico acc = (Accademico) utente;
                     acc.setAttivato(false);
-                    utenteService.aggiornaUtente(acc);
+                    userDirectory.updateProfile(acc);
                 }
                 resp.sendRedirect(req.getContextPath() + "/PersonaleTA/AttivaUtenti.jsp");
             }

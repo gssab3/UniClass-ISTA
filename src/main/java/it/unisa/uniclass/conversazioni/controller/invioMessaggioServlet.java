@@ -4,8 +4,7 @@ import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UtenteService;
+import it.unisa.uniclass.utenti.service.UserDirectory; // INTERFACCIA
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -25,7 +24,7 @@ public class invioMessaggioServlet extends HttpServlet {
     private MessaggioService messaggioService;
 
     @EJB
-    private UtenteService utenteService;
+    private UserDirectory userDirectory;
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) {
@@ -37,13 +36,10 @@ public class invioMessaggioServlet extends HttpServlet {
             String messaggioBody = request.getParameter("testo");
             String topic = request.getParameter("topic");
 
-            Utente uSelf = utenteService.getUtenteByEmail(emailSession);
-            Utente uDest = utenteService.getUtenteByEmail(emailDest);
+            Accademico accademicoSelf = userDirectory.getAccademico(emailSession);
+            Accademico accademicoDest = userDirectory.getAccademico(emailDest);
 
-            if (uSelf instanceof Accademico && uDest instanceof Accademico) {
-                Accademico accademicoSelf = (Accademico) uSelf;
-                Accademico accademicoDest = (Accademico) uDest;
-
+            if (accademicoSelf != null && accademicoDest != null) {
                 Messaggio messaggio1 = new Messaggio();
                 messaggio1.setAutore(accademicoSelf);
                 messaggio1.setDestinatario(accademicoDest);
@@ -65,16 +61,14 @@ public class invioMessaggioServlet extends HttpServlet {
 
                 response.sendRedirect("Conversazioni");
             } else {
-                throw new ServletException("Operazione non permessa per utenti non accademici.");
+                throw new ServletException("Errore nel recupero degli utenti per l'invio.");
             }
 
         } catch (Exception e) {
-            request.getServletContext().log("Error processing message sending request", e);
+            request.getServletContext().log("Error sending message", e);
             try {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred processing your request");
-            } catch (IOException ioException) {
-                request.getServletContext().log("Failed to send error response", ioException);
-            }
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            } catch (IOException ignored) {}
         }
     }
 

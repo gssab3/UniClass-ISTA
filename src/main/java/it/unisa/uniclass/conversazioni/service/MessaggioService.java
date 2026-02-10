@@ -6,7 +6,7 @@ import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.conversazioni.service.dao.MessaggioRemote;
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UtenteService; // Integrazione nuovo modulo Utenti
+import it.unisa.uniclass.utenti.service.UserDirectory; // INTERFACCIA
 import jakarta.ejb.EJB;
 import jakarta.ejb.Stateless;
 import jakarta.persistence.NoResultException;
@@ -21,23 +21,18 @@ public class MessaggioService {
     @EJB(beanName = "MessaggioDAO")
     private MessaggioRemote messaggioDao;
 
-    // Injection del servizio utenti unificato
+    // SOSTITUZIONE: Dipendenza verso l'interfaccia Facade
     @EJB
-    private UtenteService utenteService;
+    private UserDirectory userDirectory;
 
     public MessaggioService() {
     }
 
-    /**
-     * Metodo di business per inviare un messaggio gestendo il recupero degli utenti.
-     * Sostituisce la logica sparsa nei controller.
-     */
     public void inviaMessaggio(String testo, String emailAutore, String emailDestinatario) throws Exception {
-        // 1. Recupera Utenti
-        Utente uMittente = utenteService.getUtenteByEmail(emailAutore);
-        Utente uDestinatario = utenteService.getUtenteByEmail(emailDestinatario);
+        // Uso UserDirectory per recuperare gli utenti
+        Utente uMittente = userDirectory.getUser(emailAutore);
+        Utente uDestinatario = userDirectory.getUser(emailDestinatario);
 
-        // 2. Validazione Ruoli (Solo Accademici possono messaggiare)
         if (!(uMittente instanceof Accademico)) {
             throw new IllegalArgumentException("Il mittente non è abilitato all'invio di messaggi accademici.");
         }
@@ -45,7 +40,6 @@ public class MessaggioService {
             throw new IllegalArgumentException("Il destinatario non è un utente accademico valido.");
         }
 
-        // 3. Creazione e Persistenza
         Messaggio msg = new Messaggio();
         msg.setBody(testo);
         msg.setAutore((Accademico) uMittente);
@@ -91,15 +85,10 @@ public class MessaggioService {
         return messaggioDao.trovaMessaggiData(dateTime);
     }
 
-    /**
-     * Corretto il bug logico: ora restituisce gli Autori dei messaggi ricevuti,
-     * non il destinatario (che sarebbe l'utente stesso).
-     */
     public List<Accademico> trovaMessaggeriDiUnAccademico(String matricola) {
         List<Messaggio> messaggi = messaggioDao.trovaMessaggiRicevuti(matricola);
         List<Accademico> mittenti = new ArrayList<>();
         for (Messaggio messaggio : messaggi) {
-            // FIX: Era messaggio.getDestinatario(), cambiato in getAutore()
             if (messaggio.getAutore() != null && !mittenti.contains(messaggio.getAutore())) {
                 mittenti.add(messaggio.getAutore());
             }

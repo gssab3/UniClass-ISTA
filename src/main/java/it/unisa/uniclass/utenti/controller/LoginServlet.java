@@ -4,7 +4,7 @@ import it.unisa.uniclass.common.exceptions.AuthenticationException;
 import it.unisa.uniclass.common.security.CredentialSecurity;
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UtenteService;
+import it.unisa.uniclass.utenti.service.UserDirectory; // IMPORTA L'INTERFACCIA
 import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -17,8 +17,9 @@ import java.io.IOException;
 @WebServlet(name = "loginServlet", value = "/Login")
 public class LoginServlet extends HttpServlet {
 
+    // SOSTITUZIONE: Uso UserDirectory invece di UtenteService
     @EJB
-    private UtenteService utenteService;
+    private UserDirectory userDirectory;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
@@ -30,15 +31,13 @@ public class LoginServlet extends HttpServlet {
         try {
             String email = request.getParameter("email");
             String passwordRaw = request.getParameter("password");
-
-            // Hash della password (se il DB contiene password hashate)
             String password = CredentialSecurity.hashPassword(passwordRaw);
 
             try {
-                // Unico punto di accesso per il login
-                Utente user = utenteService.login(email, password);
+                // CHIAMATA FACADE
+                Utente user = userDirectory.login(email, password);
 
-                // Controllo specifico per Accademici (devono essere attivati)
+                // Logica di controllo attivazione (Business Logic specifica del Controller o delegabile)
                 if (user instanceof Accademico) {
                     Accademico acc = (Accademico) user;
                     if (!acc.isAttivato()) {
@@ -47,16 +46,13 @@ public class LoginServlet extends HttpServlet {
                     }
                 }
 
-                // Login successo
                 HttpSession session = request.getSession(true);
                 session.setAttribute("currentSessionUser", user);
-                // Salviamo anche l'email per compatibilità con altre servlet vecchie
                 session.setAttribute("utenteEmail", user.getEmail());
 
                 response.sendRedirect(request.getContextPath() + "/Home");
 
             } catch (AuthenticationException e) {
-                // Credenziali errate
                 response.sendRedirect(request.getContextPath() + "/Login.jsp?action=error");
             }
 
@@ -64,9 +60,7 @@ public class LoginServlet extends HttpServlet {
             request.getServletContext().log("Error processing login request", e);
             try {
                 response.sendRedirect(request.getContextPath() + "/Login.jsp?action=error");
-            } catch (IOException ioException) {
-                // ignore
-            }
+            } catch (IOException ignored) {}
         }
     }
 }
