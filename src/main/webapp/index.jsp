@@ -6,10 +6,17 @@
 
 <%
 	/* Sessione HTTP */
-	HttpSession sessione = request.getSession(true);
-	Utente user = (Utente) sessione.getAttribute("currentSessionUser");
-	if(user != null){
-		session.setAttribute("utenteEmail", user.getEmail());
+	HttpSession sessione = request.getSession(false);
+	Utente user = null;
+
+	if (sessione != null) {
+		user = (Utente) sessione.getAttribute("currentSessionUser");
+
+		if (user != null) {
+			sessione.setAttribute("utenteEmail", user.getEmail());
+		} else {
+			sessione.removeAttribute("utenteEmail");
+		}
 	}
 
 	/* Controllo tipo utente */

@@ -4,19 +4,24 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%
-    Utente u = (Utente) session.getAttribute("currentSessionUser");
+    HttpSession sessione = request.getSession(false);
+
+    Utente u = null;
     Accademico acc = null;
-    boolean isAccademico = (u instanceof Accademico);
-    if(isAccademico) {
-        acc = (Accademico) u;
+    boolean isAccademico = false;
+
+    if (sessione != null) {
+        u = (Utente) sessione.getAttribute("currentSessionUser");
+        if (u instanceof Accademico) {
+            acc = (Accademico) u;
+            isAccademico = true;
+        }
     }
 %>
 
 <header>
 
-
     <div class="logo">
-        <!-- Pulsante hamburger per aprire la sidebar -->
         <div class="TastoMenu" onclick="openNav()" align="left">
             <img src="<%=request.getContextPath()%>/images/icons/menuClosedIcon.png" alt="Menu" style="width: 30px; height: 30px; cursor: pointer;">
         </div>
@@ -27,36 +32,39 @@
 
     <div class="user-info">
         <div class="user-details">
+
             <% if (u != null) { %>
             <span class="user-name"><%= u.getNome() %> <%= u.getCognome() %></span>
+
             <span class="user-role">
-                    <%
-                        if (isAccademico) {
-                            out.print(acc.getRuolo().toString());
-                        } else {
-                            out.print("Personale TA");
-                        }
-                    %>
+                    <% if (isAccademico) { %>
+                        <%= acc.getRuolo().toString() %>
+                    <% } else { %>
+                        Personale TA
+                    <% } %>
                 </span>
+
             <% } else { %>
             <span class="user-name">Ospite</span>
             <% } %>
+
         </div>
+
         <div class="user-icon">
             <% if (u == null) { %>
             <img src="<%=request.getContextPath()%>/images/icons/usericonnolog.png" alt="User Icon">
-            <% } else {
-                if (isAccademico && acc.getRuolo() == Ruolo.DOCENTE) { %>
+            <% } else if (isAccademico && acc.getRuolo() == Ruolo.DOCENTE) { %>
             <img src="<%=request.getContextPath()%>/images/icons/iconprof.png" alt="Docente Icon">
             <% } else if (isAccademico && acc.getRuolo() == Ruolo.STUDENTE) { %>
             <img src="<%=request.getContextPath()%>/images/icons/iconstudent.png" alt="Studente Icon">
             <% } else { %>
             <img src="<%=request.getContextPath()%>/images/icons/iconpersonaleTA.png" alt="PTA Icon">
-            <% }
-            } %>
+            <% } %>
         </div>
+
         <% if (u != null) { %>
-        <a href="<%=request.getContextPath()%>/Logout" class="logout-button">Esci</a>
+        <a href="<%=request.getContextPath()%>/LogoutServlet" class="logout-button">Esci</a>
         <% } %>
+
     </div>
 </header>
