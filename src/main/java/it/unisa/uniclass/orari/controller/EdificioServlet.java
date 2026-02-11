@@ -1,44 +1,50 @@
 package it.unisa.uniclass.orari.controller;
 
 import it.unisa.uniclass.orari.model.Aula;
-import it.unisa.uniclass.orari.service.AulaService;
+import it.unisa.uniclass.orari.model.Lezione;
+import it.unisa.uniclass.orari.service.dao.AulaRemote;
+import it.unisa.uniclass.orari.service.dao.LezioneRemote;
 import jakarta.ejb.EJB;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-@WebServlet(name = "EdificioServlet", value = "/EdificioServlet")
+@WebServlet("/EdificioServlet")
 public class EdificioServlet extends HttpServlet {
 
-    // Injection gestita dal container: il service avrà i suoi DAO pronti
     @EJB
-    private AulaService aulaService;
+    private AulaRemote aulaDao;
+
+    @EJB
+    private LezioneRemote lezioneDao;
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-        try {
-            String edificio = req.getParameter("ed");
-            List<Aula> aule = aulaService.trovaAuleEdificio(edificio);
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-            req.setAttribute("aule", aule);
-            req.setAttribute("ed", edificio);
-            req.getRequestDispatcher("/edificio.jsp").forward(req, resp);
-        } catch (Exception e) {
-            req.getServletContext().log("Error processing edificio request", e);
-            try {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred processing your request");
-            } catch (IOException ioException) {
-                req.getServletContext().log("Failed to send error response", ioException);
+        String edificio = request.getParameter("ed");
+        List<Aula> aule = aulaDao.trovaAuleEdificio(edificio);
+
+        // Carico le lezioni per ogni aula (manual load)
+        Map<String, List<Lezione>> lezioniPerAula = new HashMap<>();
+        if (aule != null) {
+            for (Aula a : aule) {
+                List<Lezione> lezioni = lezioneDao.trovaLezioniAule(a.getNome());
+                lezioniPerAula.put(a.getNome(), lezioni);
             }
         }
-    }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
-        doGet(req, resp);
+        request.setAttribute("aule", aule);
+        request.setAttribute("lezioniPerAula", lezioniPerAula);
+        request.setAttribute("ed", edificio);
+
+        request.getRequestDispatcher("edificio.jsp").forward(request, response);
     }
 }

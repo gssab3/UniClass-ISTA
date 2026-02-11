@@ -1,33 +1,26 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%@ page import="it.unisa.uniclass.utenti.model.Utente, it.unisa.uniclass.utenti.model.Tipo" %>
-<%@ page import="it.unisa.uniclass.orari.model.CorsoLaurea" %>
 <%@ page import="it.unisa.uniclass.orari.model.Lezione" %>
-<%@ page import="it.unisa.uniclass.orari.service.AulaService" %>
 <%@ page import="it.unisa.uniclass.orari.model.Aula" %>
-<%@ page import="it.unisa.uniclass.orari.service.LezioneService" %>
 <%@ page import="java.util.*" %>
-<%@ page import="java.sql.Time" %>
 <%@ page import="java.time.LocalDate" %>
-<%@ page import="java.time.format.TextStyle" %>
 <%@ page import="java.time.LocalTime" %>
+<%@ page import="java.time.format.TextStyle" %>
 
 <%
-    /* Sessione HTTP */
     HttpSession sessione = request.getSession(true);
     Utente user = (Utente) sessione.getAttribute("currentSessionUser");
-    if(user != null){
+    if (user != null) {
         session.setAttribute("utenteEmail", user.getEmail());
     }
 
-    /* Controllo tipo utente */
-    Tipo tipoUtente = null;
-    if(user != null) {
-        tipoUtente = (Tipo) user.getTipo();
-    }
+    Tipo tipoUtente = (user != null) ? (Tipo) user.getTipo() : null;
 
-    List<CorsoLaurea> corsiLaurea = (List<CorsoLaurea>) request.getAttribute("corsi");
     List<Aula> aule = (List<Aula>) request.getAttribute("aule");
+    Map<String, List<Lezione>> lezioniPerAula =
+            (Map<String, List<Lezione>>) request.getAttribute("lezioniPerAula");
+
     String edificio = (String) request.getAttribute("ed");
 %>
 
@@ -53,7 +46,6 @@
     <ul id="menu">
         <li id="aule"><a href="AulaServlet">Aule</a></li>
 
-        <%-- Logica Condizionale Menu --%>
         <% if (tipoUtente != null) { %>
         <% if (tipoUtente.equals(Tipo.PersonaleTA)) { %>
         <li id="gutenti"><a href="PersonaleTA/AttivaUtenti.jsp">Gestione Utenti</a></li>
@@ -70,78 +62,106 @@
 </div>
 
 <jsp:include page="header.jsp"/>
-<br>
-<br>
+<br><br>
 
-<h1> Edificio <%= edificio != null ? edificio : "" %> </h1>
+<h1>Edificio <%= edificio != null ? edificio : "" %></h1>
 
 <ul class="buildings">
     <%
         if (aule != null) {
+
             LocalTime oraCorrente = LocalTime.now();
             LocalDate oggi = LocalDate.now();
             String giornoCorrente = oggi.getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ITALY);
-            // Normalizza giorno corrente per confronto (es. "martedì" -> "MARTEDI")
             String giornoCorrenteMaiuscolo = giornoCorrente.replace("è", "e").replace("ì", "i").toUpperCase(Locale.ITALY);
 
-            for (Aula aula : aule){
-                boolean occ = false; // Reset for each classroom
-                LezioneService lezioneService = new LezioneService();
-                List<Lezione> lezioni = lezioneService.trovaLezioniAule(aula.getNome());
+            for (Aula aula : aule) {
+
+                boolean occ = false;
+                List<Lezione> lezioni = (lezioniPerAula != null)
+                        ? lezioniPerAula.get(aula.getNome())
+                        : null;
 
                 if (lezioni != null) {
-                    lezioni.sort(Comparator.comparing(Lezione::getGiorno).thenComparing(Lezione::getOraInizio));
 
-                    // Check if the aula is occupied at the current time of day
-                    for(Lezione lezione : lezioni){
-                        if(lezione.getOraInizio() != null && lezione.getOraFine() != null) {
-                            LocalTime oraInizioLezione = lezione.getOraInizio().toLocalTime();
-                            LocalTime oraFineLezione = lezione.getOraFine().toLocalTime();
+                    lezioni.sort((l1, l2) -> {
+                        String g1 = (l1.getGiorno() != null) ? l1.getGiorno().toString() : "";
+                        String g2 = (l2.getGiorno() != null) ? l2.getGiorno().toString() : "";
+                        int cmp = g1.compareTo(g2);
+                        if (cmp != 0) return cmp;
 
-                            if(giornoCorrenteMaiuscolo.equals(lezione.getGiorno().toString())){
-                                if (oraCorrente.isAfter(oraInizioLezione) && oraCorrente.isBefore(oraFineLezione)) {
+                        LocalTime o1 = (l1.getOraInizio() != null) ? l1.getOraInizio().toLocalTime() : LocalTime.MIN;
+                        LocalTime o2 = (l2.getOraInizio() != null) ? l2.getOraInizio().toLocalTime() : LocalTime.MIN;
+                        return o1.compareTo(o2);
+                    });
+
+                    for (Lezione lezione : lezioni) {
+                        if (lezione.getGiorno() != null &&
+                                giornoCorrenteMaiuscolo.equals(lezione.getGiorno().toString())) {
+
+                            if (lezione.getOraInizio() != null && lezione.getOraFine() != null) {
+                                LocalTime oraInizio = lezione.getOraInizio().toLocalTime();
+                                LocalTime oraFine = lezione.getOraFine().toLocalTime();
+
+                                if (oraCorrente.isAfter(oraInizio) && oraCorrente.isBefore(oraFine)) {
                                     occ = true;
-                                    break; // Exit the loop if the room is occupied at the current time
+                                    break;
                                 }
                             }
                         }
                     }
                 }
     %>
+
     <li class="building">
         <% if (occ) { %>
         <img class="imgOcc" src="images/icons/aulaOccupata.png" alt="Occupata">
         <% } else { %>
         <img class="imgOcc" src="images/icons/aulaLibera.png" alt="Libera">
         <% } %>
+
         <%= aula.getNome() %>
 
         <ul class="classes">
             <%
                 if (lezioni != null) {
                     for (Lezione lezione : lezioni) {
-                        // Il controllo if(lezione.getAula()...) è tecnicamente ridondante dato che lezioni
-                        // sono filtrate per aula dal service, ma lo manteniamo per sicurezza.
-                        if(lezione.getAula() != null && lezione.getAula().getNome().equals(aula.getNome())){
+
+                        if (lezione.getAula() == null ||
+                                lezione.getAula().getNome() == null ||
+                                !lezione.getAula().getNome().equals(aula.getNome())) continue;
+
+                        String giorno = (lezione.getGiorno() != null) ? lezione.getGiorno().toString() : "N/D";
+                        String oraInizio = (lezione.getOraInizio() != null) ? lezione.getOraInizio().toString() : "N/D";
+                        String oraFine = (lezione.getOraFine() != null) ? lezione.getOraFine().toString() : "N/D";
+
+                        String nomeCorso = (lezione.getCorso() != null) ? lezione.getCorso().getNome() : "N/D";
+                        String anno = (lezione.getCorso() != null &&
+                                lezione.getCorso().getAnnoDidattico() != null)
+                                ? lezione.getCorso().getAnnoDidattico().getAnno()
+                                : "N/D";
+
+                        String resto = (lezione.getResto() != null) ? lezione.getResto().getNome() : "";
             %>
+
             <li class="occupata">
-                <%= lezione.getGiorno() %>
-                <%= lezione.getOraInizio() %>
-                <%= lezione.getOraFine() %>
-                <%= (lezione.getCorso() != null) ? lezione.getCorso().getNome() : "" %>
-                <%= (lezione.getCorso() != null && lezione.getCorso().getAnnoDidattico() != null) ? lezione.getCorso().getAnnoDidattico().getAnno() : "" %>
-                <%= (lezione.getResto() != null) ? lezione.getResto().getNome() : "" %>
+                <%= giorno %> —
+                <%= oraInizio %> → <%= oraFine %> —
+                <%= nomeCorso %> —
+                <%= anno %> —
+                <%= resto %>
             </li>
+
             <%
-                        }
                     }
                 }
             %>
         </ul>
     </li>
+
     <%
-            } // End for each aula
-        } // End if aule != null
+            } // fine for aule
+        } // fine if aule
     %>
 </ul>
 
@@ -154,21 +174,9 @@
             }
         });
     });
-
-    document.querySelectorAll('.class').forEach(classItem => {
-        classItem.addEventListener('click', (event) => {
-            event.stopPropagation();
-            const timetables = classItem.querySelector('.timetables');
-            if (timetables) {
-                timetables.style.display = timetables.style.display === 'none' ? 'block' : 'none';
-            }
-        });
-    });
 </script>
 
-<br>
-<br>
-<br>
-<%@include file = "footer.jsp" %>
+<br><br><br>
+<%@include file="footer.jsp" %>
 </body>
 </html>
