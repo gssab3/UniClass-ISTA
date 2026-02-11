@@ -1,5 +1,4 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-
 <%@ page import="it.unisa.uniclass.utenti.model.Utente, it.unisa.uniclass.utenti.model.Tipo" %>
 <%@ page import="it.unisa.uniclass.orari.model.CorsoLaurea" %>
 <%@ page import="java.util.List" %>
@@ -11,7 +10,6 @@
 
 	if (sessione != null) {
 		user = (Utente) sessione.getAttribute("currentSessionUser");
-
 		if (user != null) {
 			sessione.setAttribute("utenteEmail", user.getEmail());
 		} else {
@@ -30,7 +28,6 @@
 
 <!DOCTYPE html>
 <html lang="it" xml:lang="it">
-
 <head>
 	<title>UniClass</title>
 	<script src="scripts/sidebar.js" type="text/javascript"></script>
@@ -50,19 +47,6 @@
 	<p>Menu</p>
 	<ul id="menu">
 		<li id="aule"><a href="AulaServlet">Aule</a></li>
-
-		<%-- Logica Condizionale Menu
-		<% if (tipoUtente != null) { %>
-		<% if (tipoUtente.equals(Tipo.PersonaleTA)) { %>
-		<li id="gutenti"><a href="PersonaleTA/AttivaUtenti.jsp">Gestione Utenti</a></li>
-		<% } else if (tipoUtente.equals(Tipo.Studente) ||
-				tipoUtente.equals(Tipo.Docente) ||
-				tipoUtente.equals(Tipo.Coordinatore)) { %>
-		<li id="conversazioni"><a href="Conversazioni">Conversazioni</a></li>
-		<% } %>
-		<% } %>
-		--%>
-
 		<li id="mappa"><a href="mappa.jsp">Mappa</a></li>
 		<li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a></li>
 		<li id="infoapp"><a href="infoapp.jsp">Info App</a></li>
@@ -105,19 +89,19 @@
 	</form>
 </div>
 
-<script src="scripts/formOrario.js"></script>
 <script>
-	// Intercetta l'evento submit del form
+	// Definisco contextPath PRIMA di caricare il file JS esterno
+	const contextPath = "<%= request.getContextPath() %>";
+</script>
+
+<script src="scripts/formOrario.js"></script>
+
+<script>
 	document.getElementById("cercaOrarioForm").addEventListener("submit", function(event) {
-		// Recupera i valori dei campi del form
 		const corsoLaurea = document.getElementById("corsoLaurea").value;
 		const resto = document.getElementById("resto").value;
 		const anno = document.getElementById("anno").value;
-
-		// Log dei valori nella console
-		console.log("Corso di Laurea:", corsoLaurea);
-		console.log("Resto:", resto);
-		console.log("Anno:", anno);
+		console.log("Submit -> Corso:", corsoLaurea, " Resto:", resto, " Anno:", anno);
 	});
 </script>
 

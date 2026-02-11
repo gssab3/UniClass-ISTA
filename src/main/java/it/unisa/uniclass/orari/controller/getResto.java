@@ -19,46 +19,43 @@ import java.util.List;
 @WebServlet(name = "getResto", value = "/getResto")
 public class getResto extends HttpServlet {
 
-    @EJB
-    private CorsoLaureaService corsoLaureaService;
-
+    // Non serve più CorsoLaureaService se usiamo il metodo per nome stringa
     @EJB
     private RestoService restoService;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        try {
-            String corsoLaurea = request.getParameter("corsoLaurea");
-            CorsoLaurea corsoL = corsoLaureaService.trovaCorsoLaurea(corsoLaurea);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
 
+        try (PrintWriter printWriter = response.getWriter()) {
+            String nomeCorso = request.getParameter("corsoLaurea");
             JSONArray jsonArray = new JSONArray();
 
-            if (corsoL != null) {
-                List<Resto> resti = restoService.trovaRestiCorsoLaurea(corsoL);
+            if (nomeCorso != null && !nomeCorso.trim().isEmpty()) {
+                // USIAMO IL METODO CHE ACCETTA LA STRINGA (presente nel tuo Service)
+                List<Resto> resti = restoService.trovaRestiCorsoLaurea(nomeCorso);
 
-                for(Resto resto : resti) {
-                    JSONObject restoJson = new JSONObject();
-                    restoJson.put("id", resto.getId());
-                    restoJson.put("nome", resto.getNome());
-                    jsonArray.put(restoJson);
+                if (resti != null) {
+                    for (Resto resto : resti) {
+                        JSONObject restoJson = new JSONObject();
+                        restoJson.put("id", resto.getId());
+                        restoJson.put("nome", resto.getNome());
+                        jsonArray.put(restoJson);
+                    }
                 }
             }
 
-            response.setContentType("application/json");
-            response.setCharacterEncoding("UTF-8");
-
-            PrintWriter printWriter = response.getWriter();
+            // Scrive il JSON (sarà [] se vuoto, che è corretto per il JS)
             printWriter.println(jsonArray.toString());
-            printWriter.flush();
+
         } catch (Exception e) {
-            request.getServletContext().log("Error processing getResto request", e);
-            try {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred processing your request");
-            } catch (IOException ioException) {
-                request.getServletContext().log("Failed to send error response", ioException);
-            }
+            // Log dell'errore nella console del server (Eclipse/IntelliJ)
+            e.printStackTrace();
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         doGet(request, response);

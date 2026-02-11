@@ -15,13 +15,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 @WebServlet(name = "cercaOrarioServlet", value = "/cercaOrario")
 public class cercaOrario extends HttpServlet {
 
-    // Injection dei servizi
     @EJB private CorsoLaureaService corsoLaureaService;
     @EJB private RestoService restoService;
     @EJB private AnnoDidatticoService annoDidatticoService;
@@ -34,45 +34,71 @@ public class cercaOrario extends HttpServlet {
             String restoNome = request.getParameter("resto");
             String annoNome = request.getParameter("anno");
 
+            System.out.println("Ricerca Orario: Corso=" + corsoNome + ", Resto=" + restoNome + ", Anno=" + annoNome);
+
             // 1. Recupero Corso di Laurea
             CorsoLaurea corsoLaurea = corsoLaureaService.trovaCorsoLaurea(corsoNome);
             if (corsoLaurea == null) {
-                throw new IllegalArgumentException("Corso di laurea non trovato: " + corsoNome);
+                request.setAttribute("error", "Corso di laurea non trovato.");
+                request.getRequestDispatcher("/OrarioSingolo.jsp").forward(request, response);
+                return;
             }
 
-            // 2. Recupero Resto
-            Resto resto = restoService.trovaRestoNomeCorso(restoNome, corsoLaurea);
+            // 2. Recupero Resto (Filtraggio manuale per sicurezza)
+            List<Resto> restiDisponibili = restoService.trovaRestiCorsoLaurea(corsoNome);
+            Resto resto = null;
+            if(restiDisponibili != null) {
+                for(Resto r : restiDisponibili) {
+                    if(r.getNome().equalsIgnoreCase(restoNome)) {
+                        resto = r;
+                        break;
+                    }
+                }
+            }
 
-            // 3. Recupero Anno
-            AnnoDidattico annoDidattico = annoDidatticoService.trovaTuttiCorsoLaureaNome(corsoLaurea.getId(), annoNome);
+            // 3. Recupero Anno (Filtraggio manuale per sicurezza)
+            List<AnnoDidattico> anniDisponibili = annoDidatticoService.trovaTuttiCorsoLaurea(corsoLaurea.getId());
+            AnnoDidattico annoDidattico = null;
+            if(anniDisponibili != null) {
+                for(AnnoDidattico a : anniDisponibili) {
+                    if(a.getAnno().equalsIgnoreCase(annoNome)) {
+                        annoDidattico = a;
+                        break;
+                    }
+                }
+            }
 
+            List<Lezione> lezioni = new ArrayList<>();
             if (resto != null && annoDidattico != null) {
                 // 4. Recupero Lezioni
-                List<Lezione> lezioni = lezioneService.trovaLezioniCorsoLaureaRestoAnno(
+                // Assicurati che questo metodo esista nel Service. Se si chiama diversamente, aggiorna qui.
+                lezioni = lezioneService.trovaLezioniCorsoLaureaRestoAnno(
                         corsoLaurea.getId(), resto.getId(), annoDidattico.getId()
                 );
 
-                // Ordinamento (Java 8 stream style o classico, mantengo il tuo)
-                lezioni.sort(Comparator.comparing(Lezione::getGiorno).thenComparing(Lezione::getOraInizio));
-
-                request.setAttribute("lezioni", lezioni);
-                request.setAttribute("corsoLaurea", corsoLaurea);
-                request.setAttribute("resto", resto);
-                request.setAttribute("anno", annoDidattico);
+                // Ordinamento: Giorno ASC, poi Ora Inizio ASC
+                if (lezioni != null) {
+                    lezioni.sort(Comparator.comparing(Lezione::getGiorno)
+                            .thenComparing(Lezione::getOraInizio));
+                    System.out.println("Trovate " + lezioni.size() + " lezioni.");
+                }
             } else {
-                // Gestione caso dati mancanti (opzionale: messaggio errore specifico)
-                request.setAttribute("error", "Dati di ricerca non validi (Resto o Anno non trovati).");
+                System.out.println("Errore: Resto o Anno non trovati nel DB corrispondente.");
             }
+
+            // Set attributi per la JSP
+            request.setAttribute("lezioni", lezioni);
+            request.setAttribute("corsoLaurea", corsoLaurea);
+            request.setAttribute("resto", resto);
+            request.setAttribute("anno", annoDidattico);
 
             request.getRequestDispatcher("/OrarioSingolo.jsp").forward(request, response);
 
         } catch (Exception e) {
-            request.getServletContext().log("Error processing orario request", e);
+            e.printStackTrace();
             try {
-                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred processing your request");
-            } catch (IOException ioException) {
-                request.getServletContext().log("Failed to send error response", ioException);
-            }
+                response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Errore interno: " + e.getMessage());
+            } catch (IOException ignored) {}
         }
     }
 

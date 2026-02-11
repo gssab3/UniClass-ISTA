@@ -91,7 +91,7 @@ public class Lezione implements Serializable {
     /**
      * Lista dei docenti che presenziano la lezione
      */
-    @ManyToMany(mappedBy = "lezioni")
+    @ManyToMany(mappedBy = "lezioni", fetch = FetchType.EAGER)
     private List<Accademico> accademici = new ArrayList<>();
 
     /**

@@ -2,7 +2,7 @@
 <%@ page import="it.unisa.uniclass.utenti.model.Tipo" %>
 <%@ page import="java.util.List" %>
 <%@ page import="it.unisa.uniclass.orari.model.*" %>
-<%@ page import="java.sql.Time" %>
+<%@ page import="java.time.LocalTime" %>
 <%@ page import="java.util.stream.Collectors" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
@@ -23,7 +23,6 @@
   CorsoLaurea corsoLaurea = (CorsoLaurea) request.getAttribute("corsoLaurea");
   Resto resto = (Resto) request.getAttribute("resto");
   AnnoDidattico annoDidattico = (AnnoDidattico) request.getAttribute("anno");
-
   List<Lezione> lezioni = (List<Lezione>) request.getAttribute("lezioni");
 %>
 
@@ -38,6 +37,11 @@
   <link type="text/css" rel="stylesheet" href="styles/tableStyle.css">
   <link type="text/css" rel="stylesheet" href="styles/footerstyle.css">
   <link rel="icon" href="images/logois.png" sizes="32x32" type="image/png">
+  <style>
+    .schedule-table td { height: 50px; }
+    .schedule-table th { background-color: #f2f2f2; }
+    .subject-base { background-color: #e3f2fd; border-left: 5px solid #2196f3; padding: 5px; font-size: 0.9em; }
+  </style>
 </head>
 <body>
 
@@ -49,7 +53,6 @@
   <ul id="menu">
     <li id="aule"><a href="AulaServlet">Aule</a></li>
 
-    <%-- Logica Condizionale Menu --%>
     <% if (tipoUtente != null) { %>
     <% if (tipoUtente.equals(Tipo.PersonaleTA)) { %>
     <li id="gutenti"><a href="PersonaleTA/AttivaUtenti.jsp">Gestione Utenti</a></li>
@@ -58,9 +61,7 @@
     <% } %>
     <% } %>
 
-    <li id="mappa"><a href="mappa.jsp">Mappa</a></li>
-    <li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a></li>
-    <li id="infoapp"><a href="infoapp.jsp">Info App</a></li>
+    <li id="home"><a href="Home">Home</a></li>
     <li id="aboutus"><a href="aboutus.jsp">Chi Siamo</a></li>
   </ul>
 </div>
@@ -68,85 +69,104 @@
 <jsp:include page="header.jsp"/>
 
 <br>
-<h1>ORARIO: <%= corsoLaurea != null ? corsoLaurea.getNome() : "" %> <%= resto != null ? resto.getNome() : "" %> <%= annoDidattico != null ? annoDidattico.getAnno() : "" %></h1>
+<h1 style="text-align: center;">
+  ORARIO: <%= corsoLaurea != null ? corsoLaurea.getNome() : "N/D" %>
+  - <%= resto != null ? resto.getNome() : "N/D" %>
+  - <%= annoDidattico != null ? annoDidattico.getAnno() : "N/D" %>
+</h1>
 <br>
 
 <div class="table-container">
-  <table class="schedule-table">
+  <%
+    // APERTURA IF PRINCIPALE
+    if (lezioni == null || lezioni.isEmpty()) {
+  %>
+  <h3 style="text-align: center; color: red;">Nessuna lezione trovata per i parametri selezionati.</h3>
+  <%
+  } else { // APERTURA ELSE PRINCIPALE
+  %>
+  <table class="schedule-table" border="1" style="width: 95%; margin: 0 auto; border-collapse: collapse;">
     <tr>
       <th>Giorno</th>
-      <th>9:00-9:30</th>
-      <th>9:30-10:00</th>
-      <th>10:00-10:30</th>
-      <th>10:30-11:00</th>
-      <th>11:00-11:30</th>
-      <th>11:30-12:00</th>
-      <th>12:00-12:30</th>
-      <th>12:30-13:00</th>
-      <th>13:00-13:30</th>
-      <th>13:30-14:00</th>
-      <th>14:00-14:30</th>
-      <th>14:30-15:00</th>
-      <th>15:00-15:30</th>
-      <th>15:30-16:00</th>
-      <th>16:00-16:30</th>
-      <th>16:30-17:00</th>
-      <th>17:00-17:30</th>
-      <th>17:30-18:00</th>
+      <th>9:00</th><th>9:30</th><th>10:00</th><th>10:30</th>
+      <th>11:00</th><th>11:30</th><th>12:00</th><th>12:30</th>
+      <th>13:00</th><th>13:30</th><th>14:00</th><th>14:30</th>
+      <th>15:00</th><th>15:30</th><th>16:00</th><th>16:30</th>
+      <th>17:00</th><th>17:30</th>
     </tr>
     <%
-      if (lezioni != null) {
-        for (Giorno giorno : Giorno.values()) {
+      // Ciclo per ogni giorno della settimana
+      for (Giorno giorno : Giorno.values()) {
+        if (giorno.toString().equals("DOMENICA")) continue;
     %>
     <tr>
-      <td class="highlight"><b><%= giorno.toString() %></b></td>
+      <td class="highlight" style="font-weight: bold; background-color: #eee;"><%= giorno.toString() %></td>
       <%
-        int currentHour = 9 * 2; // Iniziamo da 9:00 (1 unità = 30 minuti)
+        int currentSlot = 18; // 9:00 * 2 = 18
+        int maxSlot = 36;     // 18:00 * 2 = 36
 
-        for (Lezione lezione : lezioni) {
-          if (lezione.getGiorno().equals(giorno)) {
-            int oraInizio = lezione.getOraInizio().toLocalTime().getHour() * 2 + lezione.getOraInizio().toLocalTime().getMinute() / 30;
-            int oraFine = lezione.getOraFine().toLocalTime().getHour() * 2 + lezione.getOraFine().toLocalTime().getMinute() / 30;
-            int durataOre = oraFine - oraInizio;
+        // Filtra le lezioni di questo giorno
+        List<Lezione> lezioniDelGiorno = lezioni.stream()
+                .filter(l -> l.getGiorno() == giorno)
+                .collect(Collectors.toList());
 
-            // Aggiungi celle vuote fino all'ora di inizio della lezione
-            while (currentHour < oraInizio) {
+        for (Lezione lezione : lezioniDelGiorno) {
+          LocalTime start = lezione.getOraInizio().toLocalTime();
+          LocalTime end = lezione.getOraFine().toLocalTime();
+
+          int startSlot = start.getHour() * 2 + (start.getMinute() >= 30 ? 1 : 0);
+          int endSlot = end.getHour() * 2 + (end.getMinute() >= 30 ? 1 : 0);
+          int duration = endSlot - startSlot;
+
+          // Riempi spazi vuoti prima della lezione
+          while (currentSlot < startSlot && currentSlot < maxSlot) {
       %>
       <td></td>
       <%
-          currentHour++;
+          currentSlot++;
         }
+
+        // Stampa la cella della lezione
+        if (currentSlot == startSlot) {
+          String nomeCorso = (lezione.getCorso() != null) ? lezione.getCorso().getNome() : "Corso ?";
+          String aulaNome = (lezione.getAula() != null) ? lezione.getAula().getNome() : "?";
+          String docenti = "Prof. N/D";
+
+          if (lezione.getAccademici() != null && !lezione.getAccademici().isEmpty()) {
+            docenti = lezione.getAccademici().stream()
+                    .map(d -> d.getCognome())
+                    .collect(Collectors.joining(", "));
+          }
       %>
-      <td colspan="<%= durataOre %>" class="subject-<%= lezione.getCorso().getNome().toLowerCase().replaceAll("\\s+", "-") %>">
-        <%= lezione.getCorso().getNome() %><br>
-        <%= lezione.getDocenti().stream()
-                .map(docente -> docente.getNome() + " " + docente.getCognome())
-                .collect(Collectors.joining(", ")) %>
+      <td colspan="<%= duration %>" class="subject-base" style="text-align: center; vertical-align: middle;">
+        <strong><%= nomeCorso %></strong><br>
+        <small><%= docenti %></small><br>
+        <small>Aula: <%= aulaNome %></small>
       </td>
       <%
-            currentHour += durataOre;
+            currentSlot += duration;
           }
         }
+
         // Riempi le celle rimanenti fino alle 18:00
-        while (currentHour < 18 * 2) {
+        while (currentSlot < maxSlot) {
       %>
       <td></td>
       <%
-          currentHour++;
+          currentSlot++;
         }
       %>
     </tr>
     <%
-        }
-      }
+      } // CHIUSURA FOR (Giorno)
     %>
   </table>
+  <%
+    } // CHIUSURA ELSE PRINCIPALE
+  %>
 </div>
 
-<br>
-<br>
-<br>
-
+<br><br><br>
 <%@include file = "footer.jsp" %>
 </body>
 </html>
