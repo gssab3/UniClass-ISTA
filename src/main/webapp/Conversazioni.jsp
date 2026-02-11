@@ -4,7 +4,6 @@
 <%@ page import="java.util.List" %>
 <%@ page import="it.unisa.uniclass.orari.service.dao.CorsoLaureaDAO" %>
 <%@ page import="it.unisa.uniclass.utenti.model.Accademico" %>
-<%@ page import="it.unisa.uniclass.utenti.service.AccademicoService" %>
 <%@ page import="it.unisa.uniclass.conversazioni.model.Messaggio" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="it.unisa.uniclass.utenti.model.Ruolo" %>
@@ -45,6 +44,9 @@
     List<Messaggio> msgAttr = (List<Messaggio>) request.getAttribute("messaggi");
     if (msgAttr != null) {
       messaggi = msgAttr;
+    }
+    else {
+      messaggi= new ArrayList<Messaggio>();
     }
   }
 %>

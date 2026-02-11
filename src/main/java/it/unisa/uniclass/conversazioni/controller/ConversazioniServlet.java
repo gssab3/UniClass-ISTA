@@ -3,8 +3,9 @@ package it.unisa.uniclass.conversazioni.controller;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.service.UserDirectory; // INTERFACCIA
+import it.unisa.uniclass.utenti.service.UserDirectory;
 import jakarta.ejb.EJB;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,7 +22,7 @@ public class ConversazioniServlet extends HttpServlet {
     private MessaggioService messaggioService;
 
     @EJB
-    private UserDirectory userDirectory; // Facade
+    private UserDirectory userDirectory;
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) {
@@ -38,22 +39,25 @@ public class ConversazioniServlet extends HttpServlet {
             }
 
             String email = session.getAttribute("utenteEmail").toString();
-
-            // Recupero tramite Facade
             Accademico accademicoSelf = userDirectory.getAccademico(email);
 
             if (accademicoSelf != null) {
                 String matricola = accademicoSelf.getMatricola();
 
-
                 List<Messaggio> messaggiRicevuti = messaggioService.trovaMessaggiRicevuti(matricola);
                 List<Messaggio> messaggiInviati = messaggioService.trovaMessaggiInviati(matricola);
                 List<Messaggio> avvisi = messaggioService.trovaAvvisi();
 
-                // Combina messaggi ricevuti e inviati per la lista conversazioni
                 List<Messaggio> tuttiMessaggi = new java.util.ArrayList<>();
                 tuttiMessaggi.addAll(messaggiRicevuti);
                 tuttiMessaggi.addAll(messaggiInviati);
+
+                // FIX: inizializzazione relazioni LAZY
+                for (Messaggio m : tuttiMessaggi) {
+                    if (m.getAutore() != null) m.getAutore().getNome();
+                    if (m.getDestinatario() != null) m.getDestinatario().getNome();
+                    if (m.getTopic() != null) m.getTopic().getNome();
+                }
 
                 request.setAttribute("accademicoSelf", accademicoSelf);
                 request.setAttribute("messaggiRicevuti", messaggiRicevuti);

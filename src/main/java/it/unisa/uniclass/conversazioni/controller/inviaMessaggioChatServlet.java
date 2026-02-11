@@ -52,12 +52,17 @@ public class inviaMessaggioChatServlet extends HttpServlet {
 
                 messaggioService.aggiungiMessaggio(messaggio1);
 
-                // Aggiornamento vista
                 List<Messaggio> messaggi = messaggioService.trovaTutti();
-                request.setAttribute("messaggi", messaggi);
-                request.setAttribute("accademici", messaggioService.trovaMessaggeriDiUnAccademico(accademicoSelf.getMatricola()));
 
-                response.sendRedirect("chatServlet?accademico="+accademicoDest.getEmail()+"&accademicoSelf="+accademicoSelf.getEmail());
+                // 🔥 FIX: inizializzazione relazioni LAZY
+                for (Messaggio m : messaggi) {
+                    if (m.getAutore() != null) m.getAutore().getNome();
+                    if (m.getDestinatario() != null) m.getDestinatario().getNome();
+                    if (m.getTopic() != null) m.getTopic().getNome();
+                }
+
+                response.sendRedirect("chatServlet?accademico=" + accademicoDest.getEmail() +
+                        "&accademicoSelf=" + accademicoSelf.getEmail());
             } else {
                 throw new ServletException("Errore nel recupero degli utenti per la chat.");
             }
@@ -69,6 +74,7 @@ public class inviaMessaggioChatServlet extends HttpServlet {
             } catch (IOException ignored) {}
         }
     }
+
 
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
