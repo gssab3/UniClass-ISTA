@@ -46,6 +46,19 @@
 	</a>
 	<p>Menu</p>
 	<ul id="menu">
+		<% if (tipoUtente != null) { %>
+
+		<%-- Gestione differenziata: PersonaleTA vs Altri --%>
+		<% if (tipoUtente.equals(Tipo.PersonaleTA)) { %>
+		<li id="gutenti"><a href="PersonaleTA/AttivaUtenti.jsp">Gestione Utenti</a></li>
+		<% } else {
+			// Studente, Docente, Coordinatore vedono Conversazioni
+		%>
+		<li id="conversazioni"><a href="Conversazioni">Conversazioni</a></li>
+		<% } %>
+
+		<% } %>
+
 		<li id="aule"><a href="AulaServlet">Aule</a></li>
 		<li id="mappa"><a href="mappa.jsp">Mappa</a></li>
 		<li id="ChatBot"><a href="ChatBot.jsp">ChatBot</a></li>

@@ -25,6 +25,14 @@ public class chatServlet extends HttpServlet {
     @EJB
     private UserDirectory userDirectory;
 
+    public void mockMessaggioService(MessaggioService mock) {
+        this.messaggioService = mock;
+    }
+
+    public void mockUserDirectory(UserDirectory mock) {
+        this.userDirectory = mock;
+    }
+
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {

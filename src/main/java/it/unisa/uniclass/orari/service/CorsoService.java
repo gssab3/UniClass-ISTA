@@ -13,7 +13,11 @@ public class CorsoService {
     @EJB(beanName = "CorsoDAO")
     private CorsoRemote corsoDao;
 
-    public CorsoService() {
+    public CorsoService() {}
+
+    // Constructor for testing purposes
+    public CorsoService(CorsoRemote corsoDao) {
+        this.corsoDao = corsoDao;
     }
 
     public Corso trovaCorso(long id) {

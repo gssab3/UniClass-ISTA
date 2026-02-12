@@ -20,6 +20,17 @@
 	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.6); /* Aggiunta ombra nera al testo */
 }
 
+/* Lista menu senza punti elenco */
+.barraNavigazione ul#menu {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.barraNavigazione ul#menu li {
+	padding: 8px 16px;
+}
+
 /* Messaggi all'interno della barra di navigazione (testo principale) */
 .barraNavigazione p {
 	color: #227cd7; /* Blu scuro per il testo */

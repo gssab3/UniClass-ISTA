@@ -17,6 +17,11 @@ public class RestoService {
     public RestoService() {
     }
 
+    // Just for tests
+    public RestoService(RestoRemote restoDao) {
+        this.restoDao = restoDao;
+    }
+
     public List<Resto> trovaRestiCorsoLaurea(CorsoLaurea corsoLaurea) {
         return restoDao.trovaRestiCorsoLaurea(corsoLaurea);
     }
