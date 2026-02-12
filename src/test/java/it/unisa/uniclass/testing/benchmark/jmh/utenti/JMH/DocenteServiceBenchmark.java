@@ -1,6 +1,9 @@
 package it.unisa.uniclass.testing.benchmark.jmh.utenti.JMH;
 
-import it.unisa.uniclass.testing.benchmark.jmh.utenti.mocks.MockDocenteDAO;
+import it.unisa.uniclass.utenti.model.Accademico;
+import it.unisa.uniclass.utenti.model.Ruolo;
+import it.unisa.uniclass.utenti.service.UtenteService;
+import it.unisa.uniclass.utenti.service.UserDirectoryImpl;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.results.format.ResultFormatType;
@@ -9,7 +12,12 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @State(Scope.Thread)
 @BenchmarkMode({Mode.Throughput, Mode.AverageTime, Mode.SampleTime, Mode.SingleShotTime})
@@ -19,10 +27,11 @@ import java.util.concurrent.TimeUnit;
 @Fork(3)
 public class DocenteServiceBenchmark {
 
-    private DocenteService docenteService;
+    private UserDirectoryImpl userDirectory;
+    private Accademico docenteStatico;
 
-    private static final String MATRICOLA = "005566";
-    private static final String CORSO = "Informatica";
+    private static final String EMAIL_DOCENTE = "docente@unisa.it";
+    private static final String EMAIL_INESISTENTE = "inesistente@unisa.it";
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
@@ -44,33 +53,52 @@ public class DocenteServiceBenchmark {
 
     @Setup(Level.Trial)
     public void setup() {
-        MockDocenteDAO mockDao = new MockDocenteDAO();
-        Docente d = new Docente();
-        d.setMatricola(MATRICOLA);
-        d.setNome("Luca");
-        d.setCognome("Verdi");
+        docenteStatico = new Accademico();
+        docenteStatico.setRuolo(Ruolo.DOCENTE);
+        docenteStatico.setEmail(EMAIL_DOCENTE);
+        docenteStatico.setMatricola("D005566");
+        docenteStatico.setNome("Luca");
+        docenteStatico.setCognome("Verdi");
 
-        mockDao.setDocenteDaRitornare(d);
-        this.docenteService = new DocenteService(mockDao);
+        UtenteService mockUtenteService = mock(UtenteService.class);
+
+        try {
+            when(mockUtenteService.getUtenteByEmail(EMAIL_DOCENTE)).thenReturn(docenteStatico);
+            when(mockUtenteService.getUtenteByEmail(EMAIL_INESISTENTE)).thenReturn(null);
+        } catch (Exception e) {
+
+        }
+
+        List<Accademico> listaDocenti = Collections.singletonList(docenteStatico);
+        when(mockUtenteService.getAccademiciPerRuolo(Ruolo.DOCENTE)).thenReturn(listaDocenti);
+
+        when(mockUtenteService.getTuttiGliUtenti()).thenReturn(Collections.singletonList(docenteStatico));
+
+        userDirectory = new UserDirectoryImpl(mockUtenteService);
     }
 
     @Benchmark
-    public void benchmarkTrovaPerMatricola(Blackhole bh) {
-        bh.consume(docenteService.trovaDocenteUniClass(MATRICOLA));
+    public void benchmarkIsDocente(Blackhole bh) {
+        bh.consume(userDirectory.isDocente(EMAIL_DOCENTE));
     }
 
     @Benchmark
-    public void benchmarkTrovaPerCorso(Blackhole bh) {
-        bh.consume(docenteService.trovaDocenteCorsoLaurea(CORSO));
+    public void benchmarkGetAccademico(Blackhole bh) {
+        bh.consume(userDirectory.getAccademico(EMAIL_DOCENTE));
     }
 
     @Benchmark
-    public void benchmarkTrovaPerMatricolaFallito(Blackhole bh) {
-        bh.consume(docenteService.trovaDocenteUniClass("000000"));
+    public void benchmarkGetAccademiciPerRuoloDocente(Blackhole bh) {
+        bh.consume(userDirectory.getAccademiciPerRuolo(Ruolo.DOCENTE));
     }
 
     @Benchmark
-    public void benchmarkTrovaPerCorsoFallito(Blackhole bh) {
-        bh.consume(docenteService.trovaDocenteCorsoLaurea("Chimica"));
+    public void benchmarkIsDocenteFallito(Blackhole bh) {
+        bh.consume(userDirectory.isDocente(EMAIL_INESISTENTE));
+    }
+
+    @Benchmark
+    public void benchmarkGetTuttiGliUtenti(Blackhole bh) {
+        bh.consume(userDirectory.getTuttiGliUtenti());
     }
 }

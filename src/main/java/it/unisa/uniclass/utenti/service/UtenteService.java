@@ -23,6 +23,15 @@ public class UtenteService {
     @EJB(beanName = "AccademicoDAO")
     private AccademicoRemote accademicoDAO;
 
+    public UtenteService() {
+    }
+
+    // Costruttore per test (iniezione manuale dei DAO)
+    public UtenteService(UtenteRemote utenteDAO, AccademicoRemote accademicoDAO) {
+        this.utenteDAO = utenteDAO;
+        this.accademicoDAO = accademicoDAO;
+    }
+
     // --- AUTENTICAZIONE ---
 
     public Utente login(String email, String password) throws AuthenticationException {

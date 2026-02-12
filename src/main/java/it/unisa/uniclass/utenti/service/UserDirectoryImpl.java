@@ -17,6 +17,14 @@ public class UserDirectoryImpl implements UserDirectory {
     @EJB
     private UtenteService utenteService;
 
+    public UserDirectoryImpl() {
+    }
+
+    // Costruttore per test (iniezione manuale del service)
+    public UserDirectoryImpl(UtenteService utenteService) {
+        this.utenteService = utenteService;
+    }
+
     @Override
     public Utente login(String email, String password) throws AuthenticationException {
         return utenteService.login(email, password);

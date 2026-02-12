@@ -16,6 +16,11 @@ public class AnnoDidatticoService {
     public AnnoDidatticoService() {
     }
 
+    // Costruttore per test (iniezione manuale del DAO) -- ONLY TEST
+    public AnnoDidatticoService(AnnoDidatticoRemote annoDidatticoDao) {
+        this.annoDidatticoDao = annoDidatticoDao;
+    }
+
     public List<AnnoDidattico> trovaAnno(String anno) {
         return annoDidatticoDao.trovaAnno(anno);
     }

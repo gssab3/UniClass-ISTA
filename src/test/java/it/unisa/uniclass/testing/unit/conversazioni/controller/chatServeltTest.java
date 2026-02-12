@@ -4,6 +4,7 @@ import it.unisa.uniclass.conversazioni.controller.chatServlet;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
+import it.unisa.uniclass.utenti.service.UserDirectoryImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
@@ -35,7 +36,7 @@ class ChatServletTest {
     private MessaggioService messaggioService;
 
     @Mock
-    private AccademicoService accademicoService;
+    private UserDirectoryImpl userDirectoryImpl;
 
     // 3. La servlet vera che verrà testata
     private chatServlet servlet;
@@ -44,8 +45,8 @@ class ChatServletTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         servlet = new chatServlet();
-        servlet.setMessaggioService(messaggioService);
-        servlet.setAccademicoService(accademicoService);
+        servlet.mockMessaggioService(messaggioService);
+        servlet.mockUserDirectory(userDirectoryImpl);
         when(request.getServletContext()).thenReturn(mock(jakarta.servlet.ServletContext.class));
     }
 

@@ -18,6 +18,11 @@ public class LezioneService {
     public LezioneService() {
     }
 
+    // Just for Tests: allows injecting a mock DAO
+    public LezioneService(LezioneRemote lezioneDao) {
+        this.lezioneDao = lezioneDao;
+    }
+
     public Lezione trovaLezione(long id) {
         try {
             return lezioneDao.trovaLezione(id);

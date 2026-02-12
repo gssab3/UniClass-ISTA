@@ -16,6 +16,10 @@ public class AulaService {
     public AulaService() {
     }
 
+    public AulaService(AulaRemote mockDao) {
+        this.aulaDao = mockDao;
+    }
+
     public Aula trovaAula(int id) {
         try {
             return aulaDao.trovaAula(id);

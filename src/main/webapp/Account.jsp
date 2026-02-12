@@ -21,7 +21,7 @@
     String ruoloStr = "Utente";
 
     if (isAccademico && acc != null) {
-        if (acc.getRuolo() == Ruolo.Studente) {
+        if (acc.getRuolo() == Ruolo.STUDENTE) {
             userIcon = "images/icons/iconstudent.png";
             ruoloStr = "Studente";
         } else if (acc.getRuolo() == Ruolo.DOCENTE) {
