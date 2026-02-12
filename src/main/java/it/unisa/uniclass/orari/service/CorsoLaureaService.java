@@ -16,6 +16,10 @@ public class CorsoLaureaService {
     public CorsoLaureaService() {
     }
 
+    public CorsoLaureaService(CorsoLaureaRemote mockDao) {
+        this.corsoLaureaDAO = mockDao;
+    }
+
     public CorsoLaurea trovaCorsoLaurea(long id) {
         try {
             return corsoLaureaDAO.trovaCorsoLaurea(id);

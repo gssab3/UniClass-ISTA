@@ -1,7 +1,10 @@
 package it.unisa.uniclass.testing.benchmark.jmh.utenti.JMH;
 
-import it.unisa.uniclass.testing.benchmark.jmh.utenti.mocks.MockPersonaleTADAO;
-import it.unisa.uniclass.utenti.model.PersonaleTA;
+import it.unisa.uniclass.common.exceptions.AuthenticationException;
+import it.unisa.uniclass.utenti.model.Tipo;
+import it.unisa.uniclass.utenti.model.Utente;
+import it.unisa.uniclass.utenti.service.UtenteService;
+import it.unisa.uniclass.utenti.service.UserDirectoryImpl;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.results.format.ResultFormatType;
@@ -10,7 +13,11 @@ import org.openjdk.jmh.runner.RunnerException;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @State(Scope.Thread)
 @BenchmarkMode({Mode.Throughput, Mode.AverageTime, Mode.SampleTime, Mode.SingleShotTime})
@@ -20,10 +27,12 @@ import java.util.concurrent.TimeUnit;
 @Fork(3)
 public class PersonaleTAServiceBenchmark {
 
-    private PersonaleTAService taService;
+    private UserDirectoryImpl userDirectory;
+    private Utente personaleTAStatico;
 
-    private static final String EMAIL = "admin@unisa.it";
+    private static final String EMAIL_PTA = "admin@unisa.it";
     private static final String PASSWORD = "passwordAdmin";
+    private static final String EMAIL_INESISTENTE = "inesistente@unisa.it";
 
     public static void main(String[] args) throws RunnerException {
         Options opt = new OptionsBuilder()
@@ -45,24 +54,61 @@ public class PersonaleTAServiceBenchmark {
 
     @Setup(Level.Trial)
     public void setup() {
-        MockPersonaleTADAO mockDao = new MockPersonaleTADAO();
+        personaleTAStatico = new Utente();
+        personaleTAStatico.setTipo(Tipo.PersonaleTA);
+        personaleTAStatico.setEmail(EMAIL_PTA);
+        personaleTAStatico.setPassword(PASSWORD);
+        personaleTAStatico.setNome("Admin");
+        personaleTAStatico.setCognome("Sistema");
 
-        PersonaleTA personale = new PersonaleTA();
-        personale.setEmail(EMAIL);
-        personale.setPassword(PASSWORD);
+        UtenteService mockUtenteService = mock(UtenteService.class);
 
-        mockDao.setPersonaleDaRitornare(personale);
+        try {
+            when(mockUtenteService.getUtenteByEmail(EMAIL_PTA)).thenReturn(personaleTAStatico);
+            when(mockUtenteService.getUtenteByEmail(EMAIL_INESISTENTE)).thenReturn(null);
+            when(mockUtenteService.login(EMAIL_PTA, PASSWORD)).thenReturn(personaleTAStatico);
+            when(mockUtenteService.login(EMAIL_INESISTENTE, "wrong")).thenThrow(new AuthenticationException("Credenziali errate"));
+        } catch (Exception e) {
 
-        this.taService = new PersonaleTAService(mockDao);
+        }
+
+        // getTuttiGliUtenti
+        when(mockUtenteService.getTuttiGliUtenti()).thenReturn(Collections.singletonList(personaleTAStatico));
+
+        // 4. Inietta il mock nel service tramite costruttore
+        userDirectory = new UserDirectoryImpl(mockUtenteService);
     }
 
     @Benchmark
-    public void benchmarkTrovaEmailPass(Blackhole bh) {
-        bh.consume(taService.trovaEmailPass(EMAIL, PASSWORD));
+    public void benchmarkLogin(Blackhole bh) {
+        try {
+            bh.consume(userDirectory.login(EMAIL_PTA, PASSWORD));
+        } catch (Exception e) {
+            bh.consume(e);
+        }
     }
 
     @Benchmark
-    public void benchmarkTrovaEmailErrata(Blackhole bh) {
-        bh.consume(taService.trovaEmailPass("inesistente@unisa.it", "passwordSbagliata"));
+    public void benchmarkGetUser(Blackhole bh) {
+        bh.consume(userDirectory.getUser(EMAIL_PTA));
+    }
+
+    @Benchmark
+    public void benchmarkGetTuttiGliUtenti(Blackhole bh) {
+        bh.consume(userDirectory.getTuttiGliUtenti());
+    }
+
+    @Benchmark
+    public void benchmarkLoginFallito(Blackhole bh) {
+        try {
+            bh.consume(userDirectory.login(EMAIL_INESISTENTE, "wrong"));
+        } catch (Exception e) {
+            bh.consume(e);
+        }
+    }
+
+    @Benchmark
+    public void benchmarkGetUserInesistente(Blackhole bh) {
+        bh.consume(userDirectory.getUser(EMAIL_INESISTENTE));
     }
 }

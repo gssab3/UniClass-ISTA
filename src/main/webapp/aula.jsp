@@ -50,14 +50,6 @@
         <%-- Voci menu per utenti loggati --%>
         <% if (tipoUtente != null) { %>
 
-        <%-- Solo Studente vede Agenda
-        <% if (tipoUtente.equals(Tipo.Studente)) { %>
-        <li id="agenda"><a href="servelt">Agenda</a></li>
-        <% } %>  --%>
-
-        <%-- Tutti gli utenti loggati vedono Appelli (in base al codice originale)
-        <li id="appelli"><a href="servelt">Appelli</a></li>--%>
-
         <%-- Gestione differenziata: PersonaleTA vs Altri --%>
         <% if (tipoUtente.equals(Tipo.PersonaleTA)) { %>
         <li id="gutenti"><a href="PersonaleTA/AttivaUtenti.jsp">Gestione Utenti</a></li>

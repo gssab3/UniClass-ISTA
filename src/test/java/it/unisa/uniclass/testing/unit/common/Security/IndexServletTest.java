@@ -27,7 +27,7 @@ class IndexServletTest {
     // Sottoclasse per rendere pubblico il metodo protetto
     static class TestableIndexServlet extends IndexServlet {
         @Override
-        public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        public void doGet(HttpServletRequest req, HttpServletResponse resp) {
             super.doGet(req, resp);
         }
     }
