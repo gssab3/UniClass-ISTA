@@ -22,7 +22,7 @@ public class LoginServlet extends HttpServlet {
     private UserDirectory userDirectory;
 
     @Override
-    public void doGet(HttpServletRequest request, HttpServletResponse response) {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         doPost(request, response);
     }
 

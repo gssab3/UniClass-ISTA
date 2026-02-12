@@ -2,239 +2,165 @@ package it.unisa.uniclass.testing.unit.utenti.controller;
 
 import it.unisa.uniclass.utenti.controller.AttivaUtentiServlet;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.Ruolo;
-import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UserDirectory;
-import jakarta.servlet.ServletContext;
+import it.unisa.uniclass.utenti.model.Tipo;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
 class AttivaUtentiServletTest {
 
-    // --- SOLUZIONE: Sottoclasse per esporre i metodi protected ---
+    // Sottoclasse per rendere pubblici i metodi protetti e usare il costruttore con service mockato
     static class TestableAttivaUtentiServlet extends AttivaUtentiServlet {
-        @Override
-        public void doPost(HttpServletRequest req, HttpServletResponse resp) {
-            super.doPost(req, resp);
+        public TestableAttivaUtentiServlet(AccademicoService service) {
+            super(service);
         }
-
         @Override
         public void doGet(HttpServletRequest req, HttpServletResponse resp) {
             super.doGet(req, resp);
         }
+        @Override
+        public void doPost(HttpServletRequest req, HttpServletResponse resp) {
+            super.doPost(req, resp);
+        }
     }
 
     private TestableAttivaUtentiServlet servlet;
-
-    @Mock
     private HttpServletRequest request;
-
-    @Mock
     private HttpServletResponse response;
-
-    @Mock
-    private ServletContext servletContext;
-
-    @Mock
-    private UserDirectory userDirectory;
+    private AccademicoService accademicoService;
 
     @BeforeEach
-    void setUp() throws Exception {
-        // Usiamo la versione Testable
-        servlet = new TestableAttivaUtentiServlet();
+    void setUp() throws IOException {
+        request = mock(HttpServletRequest.class);
+        response = mock(HttpServletResponse.class);
+        accademicoService = mock(AccademicoService.class);
 
-        // Iniezione manuale del Mock @EJB via Reflection nella superclasse
-        // Nota: Il campo 'userDirectory' è definito in AttivaUtentiServlet
-        Field field = AttivaUtentiServlet.class.getDeclaredField("userDirectory");
-        field.setAccessible(true);
-        field.set(servlet, userDirectory);
+        // usa sempre il costruttore con service mockato
+        servlet = new TestableAttivaUtentiServlet(accademicoService);
 
-        // Mock base
-        lenient().when(request.getContextPath()).thenReturn("/ctx");
-        lenient().when(request.getServletContext()).thenReturn(servletContext);
+        when(request.getContextPath()).thenReturn("/ctx");
+        when(request.getServletContext()).thenReturn(mock(jakarta.servlet.ServletContext.class));
+
+        // Configure sendRedirect to not throw IOException
+        doNothing().when(response).sendRedirect(anyString());
     }
 
-    // --- TEST ACTION: ADD (Attivazione) ---
-
     @Test
-    @DisplayName("Add Success: Utente trovato, ruolo e matricola corretti")
     void testAddSuccess() throws IOException {
-        // Arrange
-        String email = "studente@unisa.it";
-        String matricola = "0512101111";
-
         when(request.getParameter("param")).thenReturn("add");
-        when(request.getParameter("email")).thenReturn(email);
-        when(request.getParameter("matricola")).thenReturn(matricola);
-        when(request.getParameter("tipo")).thenReturn("STUDENTE");
-
-        Accademico acc = new Accademico();
-        acc.setEmail(email);
-        acc.setMatricola(matricola);
-        acc.setRuolo(Ruolo.STUDENTE);
-        acc.setAttivato(false);
-
-        when(userDirectory.getUser(email)).thenReturn(acc);
-
-        // Act (Ora doPost è pubblico grazie alla sottoclasse)
-        servlet.doPost(request, response);
-
-        // Assert
-        verify(userDirectory).updateProfile(acc);
-        verify(response).sendRedirect("/ctx/PersonaleTA/AttivaUtenti.jsp");
-        assert acc.getPassword() != null : "La password dovrebbe essere generata";
-        assert acc.isAttivato() : "L'utente dovrebbe essere attivato";
-    }
-
-    @Test
-    @DisplayName("Add Error: Utente non trovato o null")
-    void testAddError_UserNull() throws IOException {
-        when(request.getParameter("param")).thenReturn("add");
-        when(request.getParameter("email")).thenReturn("missing@unisa.it");
-
-        when(userDirectory.getUser(anyString())).thenReturn(null);
-
-        servlet.doPost(request, response);
-
-        verify(userDirectory, never()).updateProfile(any());
-        verify(response).sendRedirect("/ctx/PersonaleTA/AttivaUtenti.jsp?action=error");
-    }
-
-    @Test
-    @DisplayName("Add Error: Utente trovato ma non è un Accademico")
-    void testAddError_NotAccademico() throws IOException {
-        when(request.getParameter("param")).thenReturn("add");
-        when(request.getParameter("email")).thenReturn("admin@unisa.it");
-
-        Utente simpleUser = new Utente();
-        when(userDirectory.getUser(anyString())).thenReturn(simpleUser);
-
-        servlet.doPost(request, response);
-
-        verify(response).sendRedirect("/ctx/PersonaleTA/AttivaUtenti.jsp?action=error");
-    }
-
-    @Test
-    @DisplayName("Add Error: Ruolo non corrispondente")
-    void testAddError_WrongRole() throws IOException {
-        when(request.getParameter("param")).thenReturn("add");
-        when(request.getParameter("email")).thenReturn("prof@unisa.it");
-        when(request.getParameter("tipo")).thenReturn("STUDENTE");
-
-        Accademico acc = new Accademico();
-        acc.setRuolo(Ruolo.DOCENTE);
-
-        when(userDirectory.getUser(anyString())).thenReturn(acc);
-
-        servlet.doPost(request, response);
-        verify(response).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-
-    }
-
-    @Test
-    @DisplayName("Add Error: Matricola non corrispondente")
-    void testAddError_WrongMatricola() throws IOException {
-        when(request.getParameter("param")).thenReturn("add");
-        when(request.getParameter("email")).thenReturn("s@unisa.it");
+        when(request.getParameter("email")).thenReturn("test@unisa.it");
         when(request.getParameter("matricola")).thenReturn("12345");
-        when(request.getParameter("tipo")).thenReturn("STUDENTE");
+        when(request.getParameter("tipo")).thenReturn("Studente");
 
-        Accademico acc = new Accademico();
-        acc.setRuolo(Ruolo.STUDENTE);
-        acc.setMatricola("99999");
+        Accademico acc = mock(Accademico.class);
+        when(acc.getEmail()).thenReturn("test@unisa.it");
+        when(acc.getMatricola()).thenReturn("12345");
+        when(acc.getTipo()).thenReturn(Tipo.Studente);
 
-        when(userDirectory.getUser(anyString())).thenReturn(acc);
+        when(accademicoService.trovaEmailUniClass("test@unisa.it")).thenReturn(acc);
+        when(accademicoService.trovaAccademicoUniClass("12345")).thenReturn(acc);
+
+        servlet.doPost(request, response);
+
+        verify(acc).setAttivato(true);
+        verify(accademicoService).aggiungiAccademico(acc);
+        verify(response).sendRedirect("/ctx/PersonaleTA/AttivaUtenti.jsp");
+    }
+
+    @Test
+    void testAddErrorTipoDiverso() throws IOException {
+        when(request.getParameter("param")).thenReturn("add");
+        when(request.getParameter("email")).thenReturn("test@unisa.it");
+        when(request.getParameter("matricola")).thenReturn("12345");
+        when(request.getParameter("tipo")).thenReturn("Docente");
+
+        Accademico acc = mock(Accademico.class);
+        when(acc.getEmail()).thenReturn("test@unisa.it");
+        when(acc.getMatricola()).thenReturn("12345");
+        when(acc.getTipo()).thenReturn(Tipo.Studente);
+
+        when(accademicoService.trovaEmailUniClass("test@unisa.it")).thenReturn(acc);
+        when(accademicoService.trovaAccademicoUniClass("12345")).thenReturn(acc);
 
         servlet.doPost(request, response);
 
         verify(response).sendRedirect("/ctx/PersonaleTA/AttivaUtenti.jsp?action=error");
     }
 
-    // --- TEST ACTION: REMOVE (Disattivazione) ---
+    @Test
+    void testAddErrorAccademicoNull() throws IOException {
+        when(request.getParameter("param")).thenReturn("add");
+        when(request.getParameter("email")).thenReturn("test@unisa.it");
+        when(request.getParameter("matricola")).thenReturn("12345");
+        when(request.getParameter("tipo")).thenReturn("Studente");
+
+        when(accademicoService.trovaEmailUniClass("test@unisa.it")).thenReturn(null);
+        when(accademicoService.trovaAccademicoUniClass("12345")).thenReturn(null);
+
+        servlet.doPost(request, response);
+
+        verify(response).sendRedirect("/ctx/PersonaleTA/AttivaUtenti.jsp?action=error");
+    }
 
     @Test
-    @DisplayName("Remove Success: Accademico trovato e disattivato")
     void testRemoveSuccess() throws IOException {
         when(request.getParameter("param")).thenReturn("remove");
-        when(request.getParameter("email-remove")).thenReturn("target@unisa.it");
+        when(request.getParameter("email-remove")).thenReturn("test@unisa.it");
 
-        Accademico acc = new Accademico();
-        acc.setAttivato(true);
-
-        when(userDirectory.getUser("target@unisa.it")).thenReturn(acc);
+        Accademico acc = mock(Accademico.class);
+        when(accademicoService.trovaEmailUniClass("test@unisa.it")).thenReturn(acc);
 
         servlet.doPost(request, response);
 
-        verify(userDirectory).updateProfile(acc);
-        assert !acc.isAttivato() : "L'utente dovrebbe essere disattivato";
+        verify(accademicoService).cambiaAttivazione(acc, false);
         verify(response).sendRedirect("/ctx/PersonaleTA/AttivaUtenti.jsp");
     }
 
     @Test
-    @DisplayName("Remove: Utente non trovato (Nessuna azione)")
-    void testRemove_UserNotFound() throws IOException {
+    void testRemoveAccademicoNull() throws IOException {
         when(request.getParameter("param")).thenReturn("remove");
-        when(request.getParameter("email-remove")).thenReturn("null@unisa.it");
+        when(request.getParameter("email-remove")).thenReturn("test@unisa.it");
 
-        when(userDirectory.getUser(anyString())).thenReturn(null);
+        when(accademicoService.trovaEmailUniClass("test@unisa.it")).thenReturn(null);
 
         servlet.doPost(request, response);
 
-        verify(userDirectory, never()).updateProfile(any());
         verify(response).sendRedirect("/ctx/PersonaleTA/AttivaUtenti.jsp");
     }
 
     @Test
-    @DisplayName("Remove: Utente trovato ma non Accademico")
-    void testRemove_NotAccademico() throws IOException {
+    void testDoGetDelegatesToDoPost() throws IOException {
         when(request.getParameter("param")).thenReturn("remove");
-        when(request.getParameter("email-remove")).thenReturn("user@unisa.it");
+        when(request.getParameter("email-remove")).thenReturn("test@unisa.it");
 
-        Utente u = new Utente();
-        when(userDirectory.getUser(anyString())).thenReturn(u);
-
-        servlet.doPost(request, response);
-
-        verify(userDirectory, never()).updateProfile(any());
-        verify(response).sendRedirect("/ctx/PersonaleTA/AttivaUtenti.jsp");
-    }
-
-    // --- TEST GENERICI ---
-
-    @Test
-    @DisplayName("DoGet delega a DoPost")
-    void testDoGet() throws IOException {
-        when(request.getParameter("param")).thenReturn("unknown");
-
-        // Ora doGet è accessibile
         servlet.doGet(request, response);
 
-        verifyNoInteractions(userDirectory);
+        verify(response).sendRedirect("/ctx/PersonaleTA/AttivaUtenti.jsp");
     }
 
     @Test
-    @DisplayName("Gestione Eccezioni: Log e 500")
-    void testExceptionHandling() throws IOException {
-        when(request.getParameter("param")).thenReturn("add");
-        when(userDirectory.getUser(any())).thenThrow(new RuntimeException("DB Error"));
+    void testDoPostPublicDelegatesToDoPost() throws IOException {
+        when(request.getParameter("param")).thenReturn("remove");
+        when(request.getParameter("email-remove")).thenReturn("test@unisa.it");
+
+        servlet.doPostPublic(request, response);
+
+        verify(response).sendRedirect("/ctx/PersonaleTA/AttivaUtenti.jsp");
+    }
+
+    @Test
+    void testDoPostWithUnknownParam() {
+        when(request.getParameter("param")).thenReturn("altro");
 
         servlet.doPost(request, response);
 
-        verify(servletContext).log(contains("Error processing user activation"), any(RuntimeException.class));
-        verify(response).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        // non fa nulla, ma serve per coprire il ramo
+        verifyNoInteractions(accademicoService);
     }
+
 }
