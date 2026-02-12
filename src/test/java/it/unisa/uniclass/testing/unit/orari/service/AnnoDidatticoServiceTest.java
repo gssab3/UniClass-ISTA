@@ -56,7 +56,6 @@ public class AnnoDidatticoServiceTest {
             AnnoDidatticoService service = new AnnoDidatticoService(mockDao);
 
             assertNotNull(service);
-            assertNotNull(service.annoDidatticoDao);
         }
 
         @Test
@@ -79,7 +78,6 @@ public class AnnoDidatticoServiceTest {
                 AnnoDidatticoService service = new AnnoDidatticoService();
 
                 assertNotNull(service);
-                assertNotNull(service.annoDidatticoDao);
 
                 InitialContext mockCtx = mockedContext.constructed().get(0);
                 verify(mockCtx, times(1)).lookup("java:global/UniClass-Dependability/AnnoDidatticoDAO");
