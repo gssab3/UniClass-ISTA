@@ -1,4 +1,4 @@
-package it.unisa.uniclass.testing.benchmark.jmh.utenti.JMH;
+package it.unisa.uniclass.testing.benchmark.jmh.utenti;
 
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Ruolo;
@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

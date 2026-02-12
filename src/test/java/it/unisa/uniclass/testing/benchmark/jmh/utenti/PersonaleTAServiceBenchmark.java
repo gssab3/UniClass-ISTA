@@ -1,4 +1,4 @@
-package it.unisa.uniclass.testing.benchmark.jmh.utenti.JMH;
+package it.unisa.uniclass.testing.benchmark.jmh.utenti;
 
 import it.unisa.uniclass.common.exceptions.AuthenticationException;
 import it.unisa.uniclass.utenti.model.Tipo;
