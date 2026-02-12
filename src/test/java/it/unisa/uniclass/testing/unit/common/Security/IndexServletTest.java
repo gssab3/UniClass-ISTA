@@ -1,190 +1,129 @@
-package it.unisa.uniclass.testing.unit.common.Security;
+package it.unisa.uniclass.testing.unit.common;
 
 import it.unisa.uniclass.common.IndexServlet;
 import it.unisa.uniclass.orari.model.CorsoLaurea;
 import it.unisa.uniclass.orari.service.CorsoLaureaService;
+import it.unisa.uniclass.utenti.model.Utente;
 import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedConstruction;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.naming.NameClassPair;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import java.io.IOException;
-import java.lang.reflect.Method;
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class IndexServletTest {
 
-    // Sottoclasse per rendere pubblico il metodo protetto
+    // Sottoclasse per esporre i metodi protected senza cambiare la firma (no throws extra)
     static class TestableIndexServlet extends IndexServlet {
         @Override
-        public void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        public void doGet(HttpServletRequest req, HttpServletResponse resp) {
             super.doGet(req, resp);
+        }
+        @Override
+        public void doPost(HttpServletRequest req, HttpServletResponse resp) {
+            super.doPost(req, resp);
         }
     }
 
     private TestableIndexServlet servlet;
-    private HttpServletRequest request;
-    private HttpServletResponse response;
-    private RequestDispatcher dispatcher;
+
+    @Mock private HttpServletRequest request;
+    @Mock private HttpServletResponse response;
+    @Mock private HttpSession session;
+    @Mock private RequestDispatcher dispatcher;
+    @Mock private CorsoLaureaService corsoLaureaService;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         servlet = new TestableIndexServlet();
-        request = mock(HttpServletRequest.class);
-        response = mock(HttpServletResponse.class);
-        dispatcher = mock(RequestDispatcher.class);
+
+        // Iniezione del service privato tramite Reflection
+        Field field = IndexServlet.class.getDeclaredField("corsoLaureaService");
+        field.setAccessible(true);
+        field.set(servlet, corsoLaureaService);
+    }
+
+    @Test
+    @DisplayName("doGet: Redirect a Login se la sessione è null")
+    void testDoGet_SessionNull() throws Exception {
+        when(request.getSession(false)).thenReturn(null);
+
+        servlet.doGet(request, response);
+
+        verify(response).sendRedirect("Login.jsp");
+        verifyNoInteractions(corsoLaureaService);
+    }
+
+    @Test
+    @DisplayName("doGet: Redirect a Login se l'utente non è in sessione")
+    void testDoGet_UserNullInSession() throws Exception {
+        when(request.getSession(false)).thenReturn(session);
+        when(session.getAttribute("currentSessionUser")).thenReturn(null);
+
+        servlet.doGet(request, response);
+
+        verify(response).sendRedirect("Login.jsp");
+    }
+
+    @Test
+    @DisplayName("doGet: Successo - Utente loggato carica i corsi e va alla index")
+    void testDoGet_Success() throws Exception {
+        // Arrange
+        when(request.getSession(false)).thenReturn(session);
+        when(session.getAttribute("currentSessionUser")).thenReturn(new Utente());
+
+        List<CorsoLaurea> corsiMock = Arrays.asList(new CorsoLaurea("Informatica"), new CorsoLaurea("Fisica"));
+        when(corsoLaureaService.trovaTutti()).thenReturn(corsiMock);
 
         when(request.getRequestDispatcher("index.jsp")).thenReturn(dispatcher);
-        when(request.getContextPath()).thenReturn("/ctx");
-        when(request.getServletContext()).thenReturn(mock(jakarta.servlet.ServletContext.class));
+
+        // Act
+        servlet.doGet(request, response);
+
+        // Assert
+        verify(request).setAttribute("corsi", corsiMock);
+        verify(dispatcher).forward(request, response);
     }
 
     @Test
-    void testDoGetSuccess_withJndiListingCovered() throws Exception {
-        // 1) Mock costruttore di InitialContext per coprire la parte JNDI nel doGet
-        // Costruiamo una enumeration con due elementi che causano ricorsione e poi eccezione (gestita)
-        NamingEnumeration<NameClassPair> rootEnum = mock(NamingEnumeration.class);
-        when(rootEnum.hasMore()).thenReturn(true, true, false);
-        NameClassPair subctx = new NameClassPair("subctx", "javax.naming.Context");
-        NameClassPair leaf = new NameClassPair("leaf", "java.lang.Object");
-        when(rootEnum.next()).thenReturn(subctx, leaf);
+    @DisplayName("doGet: Gestione Eccezione Service (Errore 500)")
+    void testDoGet_ExceptionHandling() throws Exception {
+        // Arrange
+        when(request.getSession(false)).thenReturn(session);
+        when(session.getAttribute("currentSessionUser")).thenReturn(new Utente());
+        when(corsoLaureaService.trovaTutti()).thenThrow(new RuntimeException("DB Error"));
 
-        try (MockedConstruction<InitialContext> mockedInitial =
-                     mockConstruction(InitialContext.class, (mockCtx, context) -> {
-                         // java:global listing
-                         when(mockCtx.list("java:global")).thenReturn(rootEnum);
-                         // ricorsione: per i sotto-nodi lanciamo NamingException (verrà ignorata dal catch)
-                         when(mockCtx.list("java:global/subctx")).thenThrow(new NamingException("not a context"));
-                         when(mockCtx.list("java:global/leaf")).thenThrow(new NamingException("not a context"));
-                     });
-             // 2) Mock costruttore di CorsoLaureaService per pilotare il ramo success
-             MockedConstruction<CorsoLaureaService> mockedService =
-                     mockConstruction(CorsoLaureaService.class,
-                             (mockService, context) -> when(mockService.trovaTutti())
-                                     .thenReturn(List.of(mock(CorsoLaurea.class))))) {
+        // Act
+        servlet.doGet(request, response);
 
-            servlet.doGet(request, response);
+        // Assert
+        verify(response).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    }
 
-            // Verifica del flusso di forward
-            verify(request).setAttribute(eq("corsi"), any());
-            verify(dispatcher).forward(request, response);
-            // Nessuna interazione con response.sendError: il forward deve avvenire
-            verify(response, never()).sendError(anyInt());
+    @Test
+    @DisplayName("doPost: Deve delegare a doGet")
+    void testDoPost_Delegation() {
+        // Mock minimo per far passare il doGet senza errori fino al redirect
+        when(request.getSession(false)).thenReturn(null);
+
+        servlet.doPost(request, response);
+
+        // Verifica che doGet sia stato effettivamente eseguito (controllo sul redirect)
+        try {
+            verify(response).sendRedirect("Login.jsp");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    }
-
-    @Test
-    void testDoGetError_withJndiListingCovered() throws Exception {
-        // Copriamo comunque il blocco JNDI, poi facciamo fallire il service
-        NamingEnumeration<NameClassPair> rootEnum = mock(NamingEnumeration.class);
-        when(rootEnum.hasMore()).thenReturn(false); // niente elementi: loop entra e termina
-
-        try (MockedConstruction<InitialContext> mockedInitial =
-                     mockConstruction(InitialContext.class, (mockCtx, context) ->
-                             when(mockCtx.list("java:global")).thenReturn(rootEnum));
-             MockedConstruction<CorsoLaureaService> mockedService =
-                     mockConstruction(CorsoLaureaService.class,
-                             (mockService, context) -> when(mockService.trovaTutti())
-                                     .thenThrow(new RuntimeException("DB error")))) {
-
-            servlet.doGet(request, response);
-
-            // Verifica che sendError sia stato chiamato con errore 500
-            verify(response).sendError(eq(HttpServletResponse.SC_INTERNAL_SERVER_ERROR), anyString());
-            // Il forward non deve essere chiamato in caso di errore
-            verify(dispatcher, never()).forward(request, response);
-        }
-    }
-
-    @Test
-    void testListJndiCatchBranchCovered() throws Exception {
-        // Mock Context e NamingEnumeration
-        Context ctx = mock(Context.class);
-        NamingEnumeration<NameClassPair> rootEnum = mock(NamingEnumeration.class);
-
-        // Simuliamo un elemento che porta a ricorsione
-        when(rootEnum.hasMore()).thenReturn(true, false);
-        NameClassPair subctx = new NameClassPair("subctx", "javax.naming.Context");
-        when(rootEnum.next()).thenReturn(subctx);
-
-        // Prima chiamata: java:global → restituisce l'enumerazione
-        when(ctx.list("java:global")).thenReturn(rootEnum);
-        // Ricorsione su java:global/subctx → lancia eccezione
-        when(ctx.list("java:global/subctx")).thenThrow(new NamingException("not a context"));
-
-        // Reflection per invocare il metodo privato
-        Method listJNDIMethod = IndexServlet.class.getDeclaredMethod("listJNDI", Context.class, String.class);
-        listJNDIMethod.setAccessible(true);
-
-        // Invocazione: deve passare nel catch e stampare stacktrace
-        listJNDIMethod.invoke(servlet, ctx, "java:global");
-
-        // Verifica che la ricorsione sia stata tentata e abbia lanciato eccezione
-        verify(ctx).list("java:global");
-        verify(ctx).list("java:global/subctx");
-    }
-
-    @Test
-    void testListJndiRecursiveCallAndCatchCovered() throws Exception {
-        // Mock Context e NamingEnumeration
-        Context ctx = mock(Context.class);
-        NamingEnumeration<NameClassPair> rootEnum = mock(NamingEnumeration.class);
-
-        // Simuliamo un elemento che porta a ricorsione
-        when(rootEnum.hasMore()).thenReturn(true, false);
-        NameClassPair subctx = new NameClassPair("subctx", "javax.naming.Context");
-        when(rootEnum.next()).thenReturn(subctx);
-
-        // Prima chiamata: java:global → restituisce l'enumerazione
-        when(ctx.list("java:global")).thenReturn(rootEnum);
-        // Ricorsione su java:global/subctx → lancia eccezione
-        when(ctx.list("java:global/subctx")).thenThrow(new NamingException("not a context"));
-
-        // Reflection per invocare il metodo privato
-        Method listJNDIMethod = IndexServlet.class.getDeclaredMethod("listJNDI", Context.class, String.class);
-        listJNDIMethod.setAccessible(true);
-
-        // Invocazione: deve passare nel catch e stampare stacktrace
-        listJNDIMethod.invoke(servlet, ctx, "java:global");
-
-        // Verifica che la ricorsione sia stata tentata e abbia lanciato eccezione
-        verify(ctx).list("java:global");
-        verify(ctx).list("java:global/subctx");
-    }
-
-    @Test
-    void testPrivateListJndi_viaReflection_directCoverage() throws Exception {
-        // Invocazione diretta del metodo privato listJNDI via reflection per coprire rami e ricorsione
-
-        // Mock di Context e NamingEnumeration per simulare elementi e ricorsione
-        Context ctx = mock(Context.class);
-        NamingEnumeration<NameClassPair> rootEnum = mock(NamingEnumeration.class);
-        when(rootEnum.hasMore()).thenReturn(true, false);
-        NameClassPair subctx = new NameClassPair("subctx", "javax.naming.Context");
-        when(rootEnum.next()).thenReturn(subctx);
-        when(ctx.list("java:global")).thenReturn(rootEnum);
-        // Alla ricorsione su "java:global/subctx" lanciamo NamingException per arrivare al catch interno
-        when(ctx.list("java:global/subctx")).thenThrow(new NamingException("not a context"));
-
-        // Reflection per recuperare e invocare il metodo privato
-        Method listJNDIMethod = IndexServlet.class.getDeclaredMethod("listJNDI", Context.class, String.class);
-        listJNDIMethod.setAccessible(true);
-
-        // Chiamata: non deve lanciare eccezioni, il catch interno gestisce la ricorsione non contestuale
-        listJNDIMethod.invoke(servlet, ctx, "java:global");
-
-        // Nessuna asserzione necessaria: l'obiettivo è coprire il ciclo e la ricorsione con catch
-        verify(ctx).list("java:global");
-        verify(ctx).list("java:global/subctx");
     }
 }

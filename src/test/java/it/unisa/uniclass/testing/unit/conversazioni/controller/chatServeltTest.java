@@ -2,333 +2,172 @@ package it.unisa.uniclass.testing.unit.conversazioni.controller;
 
 import it.unisa.uniclass.conversazioni.controller.chatServlet;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
+import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
+import it.unisa.uniclass.utenti.service.UserDirectory;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class ChatServletTest {
 
-    // 1. Mockiamo le dipendenze HTTP (la "finta" richiesta web)
-    @Mock
-    private HttpServletRequest request;
-
-    @Mock
-    private HttpServletResponse response;
-
-    @Mock
-    private HttpSession session;
-
-    // 2. Mockiamo i Service (il "finto" database)
-    @Mock
-    private MessaggioService messaggioService;
-
-    @Mock
-    private AccademicoService accademicoService;
-
-    // 3. La servlet vera che verrà testata
     private chatServlet servlet;
 
+    @Mock private HttpServletRequest request;
+    @Mock private HttpServletResponse response;
+    @Mock private HttpSession session;
+    @Mock private ServletContext servletContext;
+    @Mock private MessaggioService messaggioService;
+    @Mock private UserDirectory userDirectory;
+
     @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
+    void setUp() throws Exception {
         servlet = new chatServlet();
-        servlet.setMessaggioService(messaggioService);
-        servlet.setAccademicoService(accademicoService);
-        when(request.getServletContext()).thenReturn(mock(jakarta.servlet.ServletContext.class));
+
+        // Inject EJB
+        Field msgField = chatServlet.class.getDeclaredField("messaggioService");
+        msgField.setAccessible(true);
+        msgField.set(servlet, messaggioService);
+
+        Field userField = chatServlet.class.getDeclaredField("userDirectory");
+        userField.setAccessible(true);
+        userField.set(servlet, userDirectory);
+
+        lenient().when(request.getSession()).thenReturn(session);
+        lenient().when(request.getServletContext()).thenReturn(servletContext);
+        lenient().when(request.getContextPath()).thenReturn("/ctx");
     }
 
     @Test
-    void testDoGet() throws Exception {
-        // --- ARRANGE (Preparazione dei dati finti) ---
+    @DisplayName("DoGet: Successo - Filtraggio messaggi inviati/ricevuti e Lazy Load")
+    void testDoGet_Success_WithFiltering() throws IOException {
+        // 1. Arrange Data
+        String selfEmail = "me@unisa.it";
+        String selfMatr = "111";
+        String destEmail = "other@unisa.it";
 
-        // Simuliamo le email passate come parametri dalla JSP
-        String emailAltro = "professore@unisa.it";
-        String emailSelf = "studente@studenti.unisa.it";
-        String matricolaSelf = "0512100001";
-        String matricolaAltro = "0512100002";
+        when(request.getParameter("accademico")).thenReturn(destEmail);
+        when(request.getParameter("accademicoSelf")).thenReturn(selfEmail);
 
-        when(request.getParameter("accademico")).thenReturn(emailAltro);
-        when(request.getParameter("accademicoSelf")).thenReturn(emailSelf);
-        when(request.getSession()).thenReturn(session);
-        when(request.getContextPath()).thenReturn("/UniClass");
+        Accademico self = mock(Accademico.class);
+        when(self.getMatricola()).thenReturn(selfMatr);
+        when(self.getEmail()).thenReturn(selfEmail);
 
-        // Creiamo gli oggetti Accademico finti
-        Accademico self = new Accademico();
-        self.setMatricola(matricolaSelf);
-        self.setEmail(emailSelf);
+        Accademico dest = mock(Accademico.class);
+        when(dest.getEmail()).thenReturn(destEmail);
 
-        Accademico altro = new Accademico();
-        altro.setMatricola(matricolaAltro);
-        altro.setEmail(emailAltro);
+        when(userDirectory.getAccademico(selfEmail)).thenReturn(self);
+        when(userDirectory.getAccademico(destEmail)).thenReturn(dest);
 
-        // Istruiamo il service mockato su cosa restituire
-        when(accademicoService.trovaEmailUniClass(emailSelf)).thenReturn(self);
-        when(accademicoService.trovaEmailUniClass(emailAltro)).thenReturn(altro);
+        // 2. Arrange Messages (Branch Coverage Logic)
+        List<Messaggio> allMessages = new ArrayList<>();
 
-        // Creiamo una lista di messaggi mista (Inviati, Ricevuti, Irrilevanti)
-        List<Messaggio> tuttiIMessaggi = new ArrayList<>();
+        // Msg 1: Ricevuto dall'utente (Destinatario == Self)
+        Messaggio msgRicevuto = new Messaggio();
+        msgRicevuto.setDestinatario(self); // self ha matricola 111
+        msgRicevuto.setAutore(dest);
+        msgRicevuto.setTopic(new Topic()); // Per lazy load test
+        allMessages.add(msgRicevuto);
 
-        // Messaggio 1: Inviato da ME a LUI (Dovrebbe finire in messaggiInviati)
-        Messaggio mInviato = new Messaggio();
-        mInviato.setAutore(self);
-        mInviato.setDestinatario(altro);
-        tuttiIMessaggi.add(mInviato);
+        // Msg 2: Inviato dall'utente (Autore == Self)
+        Messaggio msgInviato = new Messaggio();
+        msgInviato.setDestinatario(dest);
+        msgInviato.setAutore(self); // self ha matricola 111
+        allMessages.add(msgInviato);
 
-        // Messaggio 2: Ricevuto da LUI per ME (Dovrebbe finire in messaggiRicevuti)
-        Messaggio mRicevuto = new Messaggio();
-        mRicevuto.setAutore(altro);
-        mRicevuto.setDestinatario(self);
-        tuttiIMessaggi.add(mRicevuto);
+        // Msg 3: Irrilevante (né autore né dest sono self)
+        Messaggio msgOther = new Messaggio();
+        Accademico stranger = mock(Accademico.class);
+        when(stranger.getMatricola()).thenReturn("999");
+        msgOther.setAutore(stranger);
+        msgOther.setDestinatario(stranger);
+        allMessages.add(msgOther);
 
-        // Messaggio 3: Irrilevante (tra due estranei) - Serve a testare che il filtro funzioni
-        Accademico estraneo = new Accademico();
-        estraneo.setMatricola("999999");
-        Messaggio mIrrilevante = new Messaggio();
-        mIrrilevante.setAutore(estraneo);
-        mIrrilevante.setDestinatario(estraneo);
-        tuttiIMessaggi.add(mIrrilevante);
+        when(messaggioService.trovaTutti()).thenReturn(allMessages);
 
-        when(messaggioService.trovaTutti()).thenReturn(tuttiIMessaggi);
+        // 3. Act
+        servlet.doGet(request, response);
 
-        // --- ACT (Esecuzione del metodo reale) ---
-        servlet.doPost(request, response);
+        // 4. Assert
+        // Verifica che le liste siano state popolate correttamente in sessione/request
+        verify(request).setAttribute(eq("messaggiInviati"), argThat(list -> ((List)list).contains(msgInviato) && ((List)list).size() == 1));
+        verify(request).setAttribute(eq("messaggiRicevuti"), argThat(list -> ((List)list).contains(msgRicevuto) && ((List)list).size() == 1));
 
-        // --- ASSERT (Verifiche) ---
+        // Verifica redirect
+        verify(response).sendRedirect("/ctx/chat.jsp");
 
-        // 1. Verifichiamo che gli attributi siano stati settati nella Request
-        verify(request).setAttribute(eq("messaggigi"), any(List.class));
-        verify(request).setAttribute(eq("accademico"), eq(altro));
-        verify(request).setAttribute(eq("messaggiInviati"), any(List.class));
-        verify(request).setAttribute(eq("messaggiRicevuti"), any(List.class));
-        verify(request).setAttribute(eq("accdemicoSelf"), eq(self));
-
-        // 2. Verifichiamo che gli attributi siano stati settati nella Session
-        verify(session).setAttribute(eq("messaggigi"), any(List.class));
-        verify(session).setAttribute(eq("accademico"), eq(altro));
-        verify(session).setAttribute(eq("accademicoSelf"), eq(self));
-
-        // 3. Verifichiamo il redirect
-        verify(response).sendRedirect("/UniClass/chat.jsp");
-
-        // 4. Verifichiamo che i service siano stati chiamati
-        verify(accademicoService).trovaEmailUniClass(emailSelf);
-        verify(accademicoService).trovaEmailUniClass(emailAltro);
-        verify(messaggioService).trovaTutti();
+        // Verifica Lazy Load calls (assicura che il loop di fix sia stato eseguito)
+        verify(self, atLeastOnce()).getNome();
     }
 
     @Test
-    void testDoPost() throws Exception {
-        // --- ARRANGE ---
-        String emailAltro = "docente@unisa.it";
-        String emailSelf = "studente@studenti.unisa.it";
-        String matricolaSelf = "0512100003";
-        String matricolaAltro = "0512100004";
+    @DisplayName("DoGet: Fallimento - Utenti null")
+    void testDoGet_InvalidUsers() throws IOException {
+        when(request.getParameter("accademico")).thenReturn("a");
+        when(request.getParameter("accademicoSelf")).thenReturn("b");
 
-        when(request.getParameter("accademico")).thenReturn(emailAltro);
-        when(request.getParameter("accademicoSelf")).thenReturn(emailSelf);
-        when(request.getSession()).thenReturn(session);
-        when(request.getContextPath()).thenReturn("/UniClass");
+        when(userDirectory.getAccademico(anyString())).thenReturn(null);
 
-        Accademico self = new Accademico();
-        self.setMatricola(matricolaSelf);
-        self.setEmail(emailSelf);
+        servlet.doGet(request, response);
 
-        Accademico altro = new Accademico();
-        altro.setMatricola(matricolaAltro);
-        altro.setEmail(emailAltro);
-
-        when(accademicoService.trovaEmailUniClass(emailSelf)).thenReturn(self);
-        when(accademicoService.trovaEmailUniClass(emailAltro)).thenReturn(altro);
-
-        List<Messaggio> messaggi = new ArrayList<>();
-        when(messaggioService.trovaTutti()).thenReturn(messaggi);
-
-        // --- ACT ---
-        servlet.doPost(request, response);
-
-        // --- ASSERT ---
-        verify(response).sendRedirect("/UniClass/chat.jsp");
-        verify(accademicoService, times(1)).trovaEmailUniClass(emailSelf);
-        verify(accademicoService, times(1)).trovaEmailUniClass(emailAltro);
+        verify(response).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        verify(servletContext).log(anyString(), any(ServletException.class));
     }
 
     @Test
-    void testDoGetWithMultipleMessages() throws Exception {
-        // Test con più messaggi per aumentare la coverage
-        String emailAltro = "prof@unisa.it";
-        String emailSelf = "student@studenti.unisa.it";
-        String matricolaSelf = "0512100005";
-        String matricolaAltro = "0512100006";
+    @DisplayName("DoGet: Branch Coverage sui null nel loop Lazy Load")
+    void testDoGet_LazyLoading_NullChecks() throws IOException {
+        // Arrange users
+        Accademico self = new Accademico(); self.setMatricola("1");
+        Accademico dest = new Accademico(); dest.setMatricola("2");
 
-        when(request.getParameter("accademico")).thenReturn(emailAltro);
-        when(request.getParameter("accademicoSelf")).thenReturn(emailSelf);
-        when(request.getSession()).thenReturn(session);
-        when(request.getContextPath()).thenReturn("/UniClass");
+        when(userDirectory.getAccademico(any())).thenReturn(self); // Ritorna sempre self per semplicità
 
-        Accademico self = new Accademico();
-        self.setMatricola(matricolaSelf);
-        self.setEmail(emailSelf);
+        // Arrange Message con campi NULL per testare i rami "if (m.getAutore() != null)" etc.
+        Messaggio msgBroken = new Messaggio();
+        msgBroken.setAutore(null);
+        msgBroken.setDestinatario(null);
+        msgBroken.setTopic(null);
 
-        Accademico altro = new Accademico();
-        altro.setMatricola(matricolaAltro);
-        altro.setEmail(emailAltro);
+        List<Messaggio> list = new ArrayList<>();
+        list.add(msgBroken);
 
-        when(accademicoService.trovaEmailUniClass(emailSelf)).thenReturn(self);
-        when(accademicoService.trovaEmailUniClass(emailAltro)).thenReturn(altro);
+        when(messaggioService.trovaTutti()).thenReturn(list);
 
-        // Creiamo più messaggi per testare diversi scenari
-        List<Messaggio> tuttiIMessaggi = new ArrayList<>();
+        // Act
+        servlet.doGet(request, response);
 
-        for (int i = 0; i < 5; i++) {
-            Messaggio msg1 = new Messaggio();
-            msg1.setAutore(self);
-            msg1.setDestinatario(altro);
-            tuttiIMessaggi.add(msg1);
-
-            Messaggio msg2 = new Messaggio();
-            msg2.setAutore(altro);
-            msg2.setDestinatario(self);
-            tuttiIMessaggi.add(msg2);
-        }
-
-        when(messaggioService.trovaTutti()).thenReturn(tuttiIMessaggi);
-
-        // --- ACT ---
-        servlet.doPost(request, response);
-
-        // --- ASSERT ---
-        verify(request).setAttribute(eq("messaggigi"), any(List.class));
-        verify(request).setAttribute(eq("messaggiInviati"), any(List.class));
-        verify(request).setAttribute(eq("messaggiRicevuti"), any(List.class));
-        verify(response).sendRedirect("/UniClass/chat.jsp");
+        // Assert - Se non lancia eccezioni, i null check funzionano
+        verify(response).sendRedirect(anyString());
     }
 
     @Test
-    void testDoGetWithEmptyMessageList() throws Exception {
-        // Test con lista vuota di messaggi
-        String emailAltro = "teacher@unisa.it";
-        String emailSelf = "pupil@studenti.unisa.it";
-        String matricolaSelf = "0512100007";
-        String matricolaAltro = "0512100008";
+    @DisplayName("DoPost: Delega a DoGet")
+    void testDoPost() throws ServletException, IOException {
+        when(request.getParameter(any())).thenReturn(null);
+        when(userDirectory.getAccademico(any())).thenThrow(new RuntimeException("Delegated"));
 
-        when(request.getParameter("accademico")).thenReturn(emailAltro);
-        when(request.getParameter("accademicoSelf")).thenReturn(emailSelf);
-        when(request.getSession()).thenReturn(session);
-        when(request.getContextPath()).thenReturn("/UniClass");
-
-        Accademico self = new Accademico();
-        self.setMatricola(matricolaSelf);
-        self.setEmail(emailSelf);
-
-        Accademico altro = new Accademico();
-        altro.setMatricola(matricolaAltro);
-        altro.setEmail(emailAltro);
-
-        when(accademicoService.trovaEmailUniClass(emailSelf)).thenReturn(self);
-        when(accademicoService.trovaEmailUniClass(emailAltro)).thenReturn(altro);
-        when(messaggioService.trovaTutti()).thenReturn(new ArrayList<>());
-
-        // --- ACT ---
         servlet.doPost(request, response);
 
-        // --- ASSERT ---
-        verify(request).setAttribute(eq("messaggigi"), any(List.class));
-        verify(request).setAttribute(eq("messaggiInviati"), any(List.class));
-        verify(request).setAttribute(eq("messaggiRicevuti"), any(List.class));
-        verify(response).sendRedirect("/UniClass/chat.jsp");
-    }
-
-    @Test
-    void testDoGetWithOnlyReceivedMessages() throws Exception {
-        // Test con solo messaggi ricevuti
-        String emailAltro = "sender@unisa.it";
-        String emailSelf = "receiver@studenti.unisa.it";
-        String matricolaSelf = "0512100009";
-        String matricolaAltro = "0512100010";
-
-        when(request.getParameter("accademico")).thenReturn(emailAltro);
-        when(request.getParameter("accademicoSelf")).thenReturn(emailSelf);
-        when(request.getSession()).thenReturn(session);
-        when(request.getContextPath()).thenReturn("/UniClass");
-
-        Accademico self = new Accademico();
-        self.setMatricola(matricolaSelf);
-        self.setEmail(emailSelf);
-
-        Accademico altro = new Accademico();
-        altro.setMatricola(matricolaAltro);
-        altro.setEmail(emailAltro);
-
-        when(accademicoService.trovaEmailUniClass(emailSelf)).thenReturn(self);
-        when(accademicoService.trovaEmailUniClass(emailAltro)).thenReturn(altro);
-
-        List<Messaggio> messaggi = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            Messaggio msg = new Messaggio();
-            msg.setAutore(altro);
-            msg.setDestinatario(self);
-            messaggi.add(msg);
-        }
-        when(messaggioService.trovaTutti()).thenReturn(messaggi);
-
-        // --- ACT ---
-        servlet.doPost(request, response);
-
-        // --- ASSERT ---
-        verify(request).setAttribute(eq("messaggiRicevuti"), any(List.class));
-        verify(response).sendRedirect("/UniClass/chat.jsp");
-    }
-
-    @Test
-    void testDoGetWithOnlySentMessages() throws Exception {
-        // Test con solo messaggi inviati
-        String emailAltro = "recipient@unisa.it";
-        String emailSelf = "sender@studenti.unisa.it";
-        String matricolaSelf = "0512100011";
-        String matricolaAltro = "0512100012";
-
-        when(request.getParameter("accademico")).thenReturn(emailAltro);
-        when(request.getParameter("accademicoSelf")).thenReturn(emailSelf);
-        when(request.getSession()).thenReturn(session);
-        when(request.getContextPath()).thenReturn("/UniClass");
-
-        Accademico self = new Accademico();
-        self.setMatricola(matricolaSelf);
-        self.setEmail(emailSelf);
-
-        Accademico altro = new Accademico();
-        altro.setMatricola(matricolaAltro);
-        altro.setEmail(emailAltro);
-
-        when(accademicoService.trovaEmailUniClass(emailSelf)).thenReturn(self);
-        when(accademicoService.trovaEmailUniClass(emailAltro)).thenReturn(altro);
-
-        List<Messaggio> messaggi = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            Messaggio msg = new Messaggio();
-            msg.setAutore(self);
-            msg.setDestinatario(altro);
-            messaggi.add(msg);
-        }
-        when(messaggioService.trovaTutti()).thenReturn(messaggi);
-
-        // --- ACT ---
-        servlet.doPost(request, response);
-
-        // --- ASSERT ---
-        verify(request).setAttribute(eq("messaggiInviati"), any(List.class));
-        verify(response).sendRedirect("/UniClass/chat.jsp");
+        verify(servletContext).log(anyString(), any(RuntimeException.class));
     }
 }

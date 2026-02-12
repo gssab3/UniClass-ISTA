@@ -1,221 +1,184 @@
 package it.unisa.uniclass.testing.unit.utenti.controller;
 
+import it.unisa.uniclass.common.exceptions.AuthenticationException;
 import it.unisa.uniclass.utenti.controller.LoginServlet;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.model.PersonaleTA;
+import it.unisa.uniclass.utenti.model.Utente;
+import it.unisa.uniclass.utenti.service.UserDirectory;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockedConstruction;
-import org.mockito.Mockito;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 
-import static org.junit.Assert.*;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class LoginServletTest {
 
-    // sottoclasse che overridea i metodi incriminati e rende pubblico doGet
-    static class TestableLoginServlet extends LoginServlet {
-        @Override
-        protected AccademicoService getAccademicoService() {
-            return Mockito.mock(AccademicoService.class);
-        }
-
-        @Override
-        protected PersonaleTAService getPersonaleTAService() {
-            return Mockito.mock(PersonaleTAService.class);
-        }
-
-        @Override
-        public void doGet(HttpServletRequest req, HttpServletResponse resp) {
-            super.doGet(req, resp);
-        }
-    }
-
     private LoginServlet servlet;
+
+    @Mock
     private HttpServletRequest request;
+
+    @Mock
     private HttpServletResponse response;
+
+    @Mock
     private HttpSession session;
-    private AccademicoService accademicoService;
-    private PersonaleTAService personaleTAService;
+
+    @Mock
+    private ServletContext servletContext;
+
+    @Mock
+    private UserDirectory userDirectory;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         servlet = new LoginServlet();
-        request = mock(HttpServletRequest.class);
-        response = mock(HttpServletResponse.class);
-        session = mock(HttpSession.class);
-        accademicoService = mock(AccademicoService.class);
-        personaleTAService = mock(PersonaleTAService.class);
 
-        servlet.setAccademicoService(accademicoService);
-        servlet.setPersonaleTAService(personaleTAService);
+        // Iniezione manuale del Mock @EJB (reflection)
+        Field field = LoginServlet.class.getDeclaredField("userDirectory");
+        field.setAccessible(true);
+        field.set(servlet, userDirectory);
 
-        when(request.getContextPath()).thenReturn("/ctx");
-        when(request.getSession(true)).thenReturn(session);
-        when(request.getParameter("email")).thenReturn("test@unisa.it");
-        when(request.getParameter("password")).thenReturn("pwd");
-        when(request.getServletContext()).thenReturn(mock(jakarta.servlet.ServletContext.class));
+        // Setup base comune
+        lenient().when(request.getContextPath()).thenReturn("/ctx");
+        lenient().when(request.getSession(true)).thenReturn(session);
+        lenient().when(request.getServletContext()).thenReturn(servletContext);
     }
 
     @Test
-    void testNoUserFound() throws IOException, ServletException {
-        when(accademicoService.trovaEmailPassUniclass(anyString(), anyString())).thenReturn(null);
-        when(personaleTAService.trovaEmailPass(anyString(), anyString())).thenReturn(null);
+    @DisplayName("Login Successo: Accademico Attivato")
+    void testLoginSuccess_AccademicoActivated() throws AuthenticationException, IOException {
+        // Arrange
+        String email = "prof@unisa.it";
+        String pwd = "password";
+        Accademico acc = new Accademico();
+        acc.setEmail(email);
+        acc.setAttivato(true); // Fondamentale
 
+        when(request.getParameter("email")).thenReturn(email);
+        when(request.getParameter("password")).thenReturn(pwd);
+        when(userDirectory.login(email, pwd)).thenReturn(acc);
+
+        // Act
         servlet.doPost(request, response);
 
+        // Assert
+        verify(session).setAttribute("currentSessionUser", acc);
+        verify(session).setAttribute("utenteEmail", email);
+        verify(response).sendRedirect("/ctx/Home");
+    }
+
+    @Test
+    @DisplayName("Login Fallito: Accademico NON Attivato")
+    void testLoginFailure_AccademicoNotActivated() throws AuthenticationException, IOException {
+        // Arrange
+        String email = "studente@unisa.it";
+        Accademico acc = new Accademico();
+        acc.setAttivato(false); // Caso da testare
+
+        when(request.getParameter("email")).thenReturn(email);
+        when(request.getParameter("password")).thenReturn("pwd");
+        when(userDirectory.login(email, "pwd")).thenReturn(acc);
+
+        // Act
+        servlet.doPost(request, response);
+
+        // Assert
+        verify(response).sendRedirect("/ctx/Login.jsp?action=notactivated");
+        // Verifica che NON sia stato creato l'utente in sessione
+        verify(session, never()).setAttribute(eq("currentSessionUser"), any());
+    }
+
+    @Test
+    @DisplayName("Login Successo: Utente Generico (ex PersonaleTA)")
+    void testLoginSuccess_GenericUser() throws AuthenticationException, IOException {
+        // Arrange
+        String email = "admin@unisa.it";
+        Utente utente = new Utente(); // Utente semplice, non Accademico
+        utente.setEmail(email);
+
+        when(request.getParameter("email")).thenReturn(email);
+        when(request.getParameter("password")).thenReturn("pwd");
+        when(userDirectory.login(email, "pwd")).thenReturn(utente);
+
+        // Act
+        servlet.doPost(request, response);
+
+        // Assert
+        // Deve fare il redirect alla home, saltando il check "isAttivato"
+        verify(response).sendRedirect("/ctx/Home");
+    }
+
+    @Test
+    @DisplayName("Login Fallito: AuthenticationException")
+    void testLoginFailure_AuthenticationException() throws AuthenticationException, IOException {
+        // Arrange
+        when(request.getParameter("email")).thenReturn("wrong@unisa.it");
+        when(request.getParameter("password")).thenReturn("wrong");
+        when(userDirectory.login(anyString(), anyString()))
+                .thenThrow(new AuthenticationException("Credenziali errate"));
+
+        // Act
+        servlet.doPost(request, response);
+
+        // Assert
         verify(response).sendRedirect("/ctx/Login.jsp?action=error");
     }
 
     @Test
-    void testAccademicoAttivato() throws IOException, ServletException {
-        Accademico acc = mock(Accademico.class);
-        when(acc.isAttivato()).thenReturn(true);
-        when(accademicoService.trovaEmailPassUniclass(anyString(), anyString())).thenReturn(acc);
-        when(personaleTAService.trovaEmailPass(anyString(), anyString())).thenReturn(null);
+    @DisplayName("DoGet delegato a DoPost")
+    void testDoGet() throws IOException {
+        // Spy parziale per verificare la chiamata interna (opzionale, ma utile)
+        // Qui testiamo semplicemente che doGet esegua la logica (es. redirect di errore se params null)
 
-        servlet.doPost(request, response);
+        // Simuliamo parametri nulli che causano errore nel doPost -> redirect errore
+        when(request.getParameter("email")).thenReturn(null);
 
-        verify(session).setAttribute(eq("currentSessionUser"), eq(acc));
-        verify(response).sendRedirect("/ctx/Home");
-    }
-
-    @Test
-    void testAccademicoNonAttivatoPasswordNull() throws IOException, ServletException {
-        Accademico acc = mock(Accademico.class);
-        when(acc.isAttivato()).thenReturn(false);
-        when(acc.getPassword()).thenReturn(null);
-        when(accademicoService.trovaEmailPassUniclass(anyString(), anyString())).thenReturn(acc);
-        when(personaleTAService.trovaEmailPass(anyString(), anyString())).thenReturn(null);
-
-        servlet.doPost(request, response);
-
-        verify(response).sendRedirect("/ctx/Login.jsp?action=notactivated");
-    }
-
-    @Test
-    void testPersonaleTAFound() throws IOException, ServletException {
-        PersonaleTA ta = mock(PersonaleTA.class);
-        when(accademicoService.trovaEmailPassUniclass(anyString(), anyString())).thenReturn(null);
-        when(personaleTAService.trovaEmailPass(anyString(), anyString())).thenReturn(ta);
-
-        servlet.doPost(request, response);
-
-        verify(session).setAttribute(eq("currentSessionUser"), eq(ta));
-        verify(response).sendRedirect("/ctx/Home");
-    }
-
-    @Test
-    void testDoGetDelegatesToDoPost() throws Exception {
-        TestableLoginServlet servlet = new TestableLoginServlet();
-        servlet.setAccademicoService(accademicoService);
-        servlet.setPersonaleTAService(personaleTAService);
+        // Se userDirectory.login viene chiamato con null lancia eccezione o gestiamo prima?
+        // Nel codice attuale: request.getParameter restituisce null -> login(null, null)
+        // Assumiamo che il service o il try catch gestisca.
+        // Simuliamo eccezione per brevità o verifichiamo il comportamento safe.
+        try {
+            when(userDirectory.login(null, null)).thenThrow(new AuthenticationException(""));
+        } catch (AuthenticationException e) { /* ignore setup */ }
 
         servlet.doGet(request, response);
 
-        verify(response, atLeastOnce()).sendRedirect(anyString());
+        verify(response).sendRedirect(contains("Login.jsp?action=error"));
     }
 
     @Test
-    void testGetAccademicoService() {
-        TestableLoginServlet servlet = new TestableLoginServlet();
-        assertNotNull(servlet.getAccademicoService());
-    }
+    @DisplayName("Gestione IOException del Servlet")
+    void testIOExceptionHandling() throws IOException {
+        // Arrange
+        when(request.getParameter("email")).thenReturn("io@test.it");
+        when(request.getParameter("password")).thenReturn("pwd");
 
-    @Test
-    void testGetPersonaleTAService() {
-        TestableLoginServlet servlet = new TestableLoginServlet();
-        assertNotNull(servlet.getPersonaleTAService());
-    }
+        Utente u = new Utente();
+        u.setEmail("io@test.it");
+        when(userDirectory.login(anyString(), anyString())).thenReturn(u);
 
-    @Test
-    void testGetAccademicoServiceOriginal() {
-        try (MockedConstruction<AccademicoService> mocked =
-                     Mockito.mockConstruction(AccademicoService.class)) {
-            TestableLoginServlet s = new TestableLoginServlet();
-            AccademicoService svc = s.getAccademicoService(); // chiama il metodo originale
-            assertNotNull(svc);
-            // TestableLoginServlet mocks the service, so we don't check constructed size
-        }
-    }
+        // Facciamo lanciare IOException alla prima redirect (o al getSession)
+        doThrow(new IOException("Simulated IO Error")).when(response).sendRedirect(anyString());
 
-    @Test
-    void testGetPersonaleTAServiceOriginal() {
-        try (MockedConstruction<PersonaleTAService> mocked =
-                     Mockito.mockConstruction(PersonaleTAService.class)) {
-            TestableLoginServlet s = new TestableLoginServlet();
-            PersonaleTAService svc = s.getPersonaleTAService(); // chiama il metodo originale
-            assertNotNull(svc);
-            // TestableLoginServlet mocks the service, so we don't check constructed size
-        }
-    }
-
-    @Test
-    void testAccademicoNonAttivatoPasswordNonNulla() throws IOException, ServletException {
-        Accademico acc = mock(Accademico.class);
-        when(acc.isAttivato()).thenReturn(false);
-        when(acc.getPassword()).thenReturn("hashedpwd");
-        when(accademicoService.trovaEmailPassUniclass(anyString(), anyString())).thenReturn(acc);
-        when(personaleTAService.trovaEmailPass(anyString(), anyString())).thenReturn(null);
-
+        // Act
         servlet.doPost(request, response);
 
-        verify(response).sendRedirect("/ctx/Login.jsp?action=error");
+        // Assert
+        // Verifica che l'errore sia stato loggato
+        verify(servletContext).log(eq("Error processing login request"), any(IOException.class));
     }
-
-
-    @Test
-    void testIstanziaServiziSeNull() throws IOException, ServletException {
-        when(request.getContextPath()).thenReturn("/ctx");
-        when(request.getSession(true)).thenReturn(session);
-        when(request.getParameter("email")).thenReturn("test@unisa.it");
-        when(request.getParameter("password")).thenReturn("pwd");
-
-        try (MockedConstruction<AccademicoService> mockedAcc = mockConstruction(AccademicoService.class,
-                (mock, context) -> when(mock.trovaEmailPassUniclass(anyString(), anyString())).thenReturn(null));
-             MockedConstruction<PersonaleTAService> mockedTA = mockConstruction(PersonaleTAService.class,
-                     (mock, context) -> when(mock.trovaEmailPass(anyString(), anyString())).thenReturn(null))) {
-
-            LoginServlet s = new LoginServlet(); // non settiamo i service
-            s.doPost(request, response);
-
-            verify(response).sendRedirect("/ctx/Login.jsp?action=error");
-            assertEquals(1, mockedAcc.constructed().size());
-            assertEquals(1, mockedTA.constructed().size());
-        }
-    }
-    @Test
-    void testCatchIOException() throws IOException {
-        when(request.getContextPath()).thenReturn("/ctx");
-        when(request.getParameter("email")).thenReturn("test@unisa.it");
-        when(request.getParameter("password")).thenReturn("pwd");
-
-        // mock dei service che restituiscono null
-        try (MockedConstruction<AccademicoService> mockedAcc = mockConstruction(AccademicoService.class,
-                (mock, context) -> when(mock.trovaEmailPassUniclass(anyString(), anyString())).thenReturn(null));
-             MockedConstruction<PersonaleTAService> mockedTA = mockConstruction(PersonaleTAService.class,
-                     (mock, context) -> when(mock.trovaEmailPass(anyString(), anyString())).thenReturn(null))) {
-
-            LoginServlet s = new LoginServlet();
-
-            // forza IOException - il servlet la gestisce senza rilanciarla come RuntimeException
-            doThrow(new IOException("Errore simulato")).when(response).sendRedirect(anyString());
-
-            // Il servlet gestisce l'eccezione internamente senza rilanciare RuntimeException
-            s.doPost(request, response);
-
-            // Verifica che sendRedirect sia stato chiamato almeno una volta (prima dell'errore)
-            verify(response, atLeastOnce()).sendRedirect(anyString());
-        }
-    }
-
-
 }
