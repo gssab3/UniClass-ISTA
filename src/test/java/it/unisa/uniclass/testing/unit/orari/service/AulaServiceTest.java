@@ -6,14 +6,11 @@ import it.unisa.uniclass.orari.service.dao.AulaRemote;
 import jakarta.persistence.NoResultException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.MockedConstruction;
 import org.mockito.MockitoAnnotations;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +19,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * Test d'unità per la classe AulaService.
- * Verifica i metodi di servizio per la gestione delle aule.
+ * Versione aggiornata per riflettere l'uso di injection EJB
+ * senza lookup JNDI nel costruttore.
  */
 @DisplayName("Test per la classe AulaService")
 public class AulaServiceTest {
@@ -34,12 +32,9 @@ public class AulaServiceTest {
     private Aula aula;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        // Usa il costruttore con iniezione diretta per i test
         aulaService = new AulaService(aulaDao);
-
         aula = new Aula(1, "Edificio A", "Aula 101");
     }
 
@@ -57,47 +52,10 @@ public class AulaServiceTest {
         }
 
         @Test
-        @DisplayName("Costruttore JNDI fallisce quando InitialContext non è disponibile")
-        void testCostruttoreJndiFallisce() {
-            assertThrows(RuntimeException.class, () -> {
-                new AulaService();
-            });
-        }
-
-        @Test
-        @DisplayName("Costruttore JNDI funziona con InitialContext mockato")
-        void testCostruttoreJndiConMock() throws Exception {
-            try (MockedConstruction<InitialContext> mockedContext = mockConstruction(InitialContext.class,
-                    (mock, context) -> {
-                        when(mock.lookup("java:global/UniClass-Dependability/AulaDAO"))
-                                .thenReturn(aulaDao);
-                    })) {
-
-                AulaService service = new AulaService();
-
-                assertNotNull(service);
-
-                InitialContext mockCtx = mockedContext.constructed().get(0);
-                verify(mockCtx, times(1)).lookup("java:global/UniClass-Dependability/AulaDAO");
-            }
-        }
-
-        @Test
-        @DisplayName("Costruttore JNDI lancia RuntimeException quando lookup fallisce")
-        void testCostruttoreJndiLookupFallisce() throws Exception {
-            try (MockedConstruction<InitialContext> mockedContext = mockConstruction(InitialContext.class,
-                    (mock, context) -> {
-                        when(mock.lookup(anyString()))
-                                .thenThrow(new NamingException("DAO non trovato"));
-                    })) {
-
-                RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-                    new AulaService();
-                });
-
-                assertTrue(exception.getMessage().contains("Errore durante il lookup di AulaDAO"));
-                assertInstanceOf(NamingException.class, exception.getCause());
-            }
+        @DisplayName("Costruttore senza parametri crea comunque l'istanza")
+        void testCostruttoreVuoto() {
+            AulaService service = new AulaService();
+            assertNotNull(service);
         }
     }
 
@@ -110,8 +68,7 @@ public class AulaServiceTest {
         void testTrovaAulaByIdSuccesso() {
             int id = 1;
 
-            when(aulaDao.trovaAula(id))
-                    .thenReturn(aula);
+            when(aulaDao.trovaAula(id)).thenReturn(aula);
 
             Aula result = aulaService.trovaAula(id);
 
@@ -125,8 +82,7 @@ public class AulaServiceTest {
         void testTrovaAulaByIdNonTrovata() {
             int id = 999;
 
-            when(aulaDao.trovaAula(id))
-                    .thenThrow(new NoResultException("Aula non trovata"));
+            when(aulaDao.trovaAula(id)).thenThrow(new NoResultException("Aula non trovata"));
 
             Aula result = aulaService.trovaAula(id);
 
@@ -140,8 +96,7 @@ public class AulaServiceTest {
             for (int id = 1; id <= 3; id++) {
                 Aula aulaTest = new Aula(id, "Edificio " + id, "Aula " + (100 + id));
 
-                when(aulaDao.trovaAula(id))
-                        .thenReturn(aulaTest);
+                when(aulaDao.trovaAula(id)).thenReturn(aulaTest);
 
                 Aula result = aulaService.trovaAula(id);
 
@@ -160,8 +115,7 @@ public class AulaServiceTest {
         void testTrovaAulaByNomeSuccesso() {
             String nome = "Aula 101";
 
-            when(aulaDao.trovaAula(nome))
-                    .thenReturn(aula);
+            when(aulaDao.trovaAula(nome)).thenReturn(aula);
 
             Aula result = aulaService.trovaAula(nome);
 
@@ -175,8 +129,7 @@ public class AulaServiceTest {
         void testTrovaAulaByNomeNonTrovata() {
             String nome = "Aula Inesistente";
 
-            when(aulaDao.trovaAula(nome))
-                    .thenThrow(new NoResultException("Aula non trovata"));
+            when(aulaDao.trovaAula(nome)).thenThrow(new NoResultException("Aula non trovata"));
 
             Aula result = aulaService.trovaAula(nome);
 
@@ -192,8 +145,7 @@ public class AulaServiceTest {
             for (String nome : nomi) {
                 Aula aulaTest = new Aula(1, "Edificio A", nome);
 
-                when(aulaDao.trovaAula(nome))
-                        .thenReturn(aulaTest);
+                when(aulaDao.trovaAula(nome)).thenReturn(aulaTest);
 
                 Aula result = aulaService.trovaAula(nome);
 
@@ -215,8 +167,7 @@ public class AulaServiceTest {
             aule.add(new Aula(2, "Edificio B", "Aula 102"));
             aule.add(new Aula(3, "Edificio A", "Aula 103"));
 
-            when(aulaDao.trovaTutte())
-                    .thenReturn(aule);
+            when(aulaDao.trovaTutte()).thenReturn(aule);
 
             List<Aula> result = aulaService.trovaTutte();
 
@@ -228,8 +179,7 @@ public class AulaServiceTest {
         @Test
         @DisplayName("trovaTutte restituisce lista vuota")
         void testTrovaTutteVuoto() {
-            when(aulaDao.trovaTutte())
-                    .thenReturn(new ArrayList<>());
+            when(aulaDao.trovaTutte()).thenReturn(new ArrayList<>());
 
             List<Aula> result = aulaService.trovaTutte();
 
@@ -245,8 +195,7 @@ public class AulaServiceTest {
                 aule.add(new Aula(i, "Edificio", "Aula " + i));
             }
 
-            when(aulaDao.trovaTutte())
-                    .thenReturn(aule);
+            when(aulaDao.trovaTutte()).thenReturn(aule);
 
             List<Aula> result = aulaService.trovaTutte();
 
@@ -266,10 +215,9 @@ public class AulaServiceTest {
             aule.add(new Aula(1, edificio, "Aula 101"));
             aule.add(new Aula(2, edificio, "Aula 102"));
 
-            when(aulaDao.trovaAuleEdificio(edificio))
-                    .thenReturn(aule);
+            when(aulaDao.trovaAuleEdificio(edificio)).thenReturn(aule);
 
-            List<Aula> result = aulaDao.trovaAuleEdificio(edificio);
+            List<Aula> result = aulaService.trovaAuleEdificio(edificio);
 
             assertNotNull(result);
             assertEquals(2, result.size());
@@ -281,10 +229,9 @@ public class AulaServiceTest {
         void testTrovaAuleEdificioVuoto() {
             String edificio = "Edificio Inesistente";
 
-            when(aulaDao.trovaAuleEdificio(edificio))
-                    .thenReturn(new ArrayList<>());
+            when(aulaDao.trovaAuleEdificio(edificio)).thenReturn(new ArrayList<>());
 
-            List<Aula> result = aulaDao.trovaAuleEdificio(edificio);
+            List<Aula> result = aulaService.trovaAuleEdificio(edificio);
 
             assertNotNull(result);
             assertTrue(result.isEmpty());
@@ -300,10 +247,9 @@ public class AulaServiceTest {
                 aule.add(new Aula(1, edificio, "Aula 101"));
                 aule.add(new Aula(2, edificio, "Aula 102"));
 
-                when(aulaDao.trovaAuleEdificio(edificio))
-                        .thenReturn(aule);
+                when(aulaDao.trovaAuleEdificio(edificio)).thenReturn(aule);
 
-                List<Aula> result = aulaDao.trovaAuleEdificio(edificio);
+                List<Aula> result = aulaService.trovaAuleEdificio(edificio);
 
                 assertEquals(2, result.size());
             }
@@ -322,8 +268,7 @@ public class AulaServiceTest {
             edifici.add("Edificio B");
             edifici.add("Edificio C");
 
-            when(aulaDao.trovaEdifici())
-                    .thenReturn(edifici);
+            when(aulaDao.trovaEdifici()).thenReturn(edifici);
 
             List<String> result = aulaService.trovaEdifici();
 
@@ -335,8 +280,7 @@ public class AulaServiceTest {
         @Test
         @DisplayName("trovaEdifici restituisce lista vuota")
         void testTrovaEdificiVuoto() {
-            when(aulaDao.trovaEdifici())
-                    .thenReturn(new ArrayList<>());
+            when(aulaDao.trovaEdifici()).thenReturn(new ArrayList<>());
 
             List<String> result = aulaService.trovaEdifici();
 
@@ -352,8 +296,7 @@ public class AulaServiceTest {
                 edifici.add("Edificio " + i);
             }
 
-            when(aulaDao.trovaEdifici())
-                    .thenReturn(edifici);
+            when(aulaDao.trovaEdifici()).thenReturn(edifici);
 
             List<String> result = aulaService.trovaEdifici();
 
@@ -369,7 +312,6 @@ public class AulaServiceTest {
         @DisplayName("aggiungiAula aggiunge correttamente un'aula")
         void testAggiungiAulaSuccesso() {
             aulaService.aggiungiAula(aula);
-
             verify(aulaDao, times(1)).aggiungiAula(aula);
         }
 
@@ -414,7 +356,6 @@ public class AulaServiceTest {
         @DisplayName("rimuoviAula rimuove correttamente un'aula")
         void testRimuoviAulaSuccesso() {
             aulaService.rimuoviAula(aula);
-
             verify(aulaDao, times(1)).rimuoviAula(aula);
         }
 
@@ -450,8 +391,7 @@ public class AulaServiceTest {
         void testTrovaAulaByIdEccezione() {
             int id = -1;
 
-            when(aulaDao.trovaAula(id))
-                    .thenThrow(new NoResultException("Not found"));
+            when(aulaDao.trovaAula(id)).thenThrow(new NoResultException("Not found"));
 
             assertThrows(NoResultException.class, () -> aulaDao.trovaAula(id));
         }
@@ -461,8 +401,7 @@ public class AulaServiceTest {
         void testTrovaAulaByNomeEccezione() {
             String nome = "";
 
-            when(aulaDao.trovaAula(nome))
-                    .thenThrow(new NoResultException("Not found"));
+            when(aulaDao.trovaAula(nome)).thenThrow(new NoResultException("Not found"));
 
             assertThrows(NoResultException.class, () -> aulaDao.trovaAula(nome));
         }
@@ -472,8 +411,7 @@ public class AulaServiceTest {
         void testTrovaAuleEdificioEccezione() {
             String edificio = null;
 
-            when(aulaDao.trovaAuleEdificio(edificio))
-                    .thenReturn(new ArrayList<>());
+            when(aulaDao.trovaAuleEdificio(edificio)).thenReturn(new ArrayList<>());
 
             List<Aula> result = aulaService.trovaAuleEdificio(edificio);
 
@@ -488,17 +426,13 @@ public class AulaServiceTest {
         @Test
         @DisplayName("Sequenza completa con operazioni multiple")
         void testSequenzaCompleta() {
-            // Aggiungi
             aulaService.aggiungiAula(aula);
             verify(aulaDao, times(1)).aggiungiAula(aula);
 
-            // Trova per ID
-            when(aulaDao.trovaAula(1))
-                    .thenReturn(aula);
+            when(aulaDao.trovaAula(1)).thenReturn(aula);
             Aula result = aulaService.trovaAula(1);
             assertNotNull(result);
 
-            // Rimuovi
             aulaService.rimuoviAula(aula);
             verify(aulaDao, atLeastOnce()).rimuoviAula(aula);
         }
@@ -513,8 +447,7 @@ public class AulaServiceTest {
             aule.add(aula1);
             aule.add(aula2);
 
-            when(aulaDao.trovaAuleEdificio(edificio))
-                    .thenReturn(aule);
+            when(aulaDao.trovaAuleEdificio(edificio)).thenReturn(aule);
 
             List<Aula> result = aulaService.trovaAuleEdificio(edificio);
             assertEquals(2, result.size());
@@ -530,8 +463,7 @@ public class AulaServiceTest {
         void testRicercaNomeEAggiornamento() {
             String nome = "Aula 101";
 
-            when(aulaDao.trovaAula(nome))
-                    .thenReturn(aula);
+            when(aulaDao.trovaAula(nome)).thenReturn(aula);
 
             Aula result = aulaService.trovaAula(nome);
             assertNotNull(result);
@@ -544,4 +476,3 @@ public class AulaServiceTest {
         }
     }
 }
-

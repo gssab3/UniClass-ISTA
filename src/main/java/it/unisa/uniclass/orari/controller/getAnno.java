@@ -26,7 +26,7 @@ public class getAnno extends HttpServlet {
     private AnnoDidatticoService annoDidatticoService;
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+    public void doGet(HttpServletRequest request, HttpServletResponse response) {
         // Impostiamo subito il tipo di risposta per evitare errori di encoding
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -77,7 +77,7 @@ public class getAnno extends HttpServlet {
     }
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+    public void doPost(HttpServletRequest request, HttpServletResponse response) {
         doGet(request, response);
     }
 }

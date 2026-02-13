@@ -26,7 +26,7 @@ public class EdificioServlet extends HttpServlet {
     private LezioneRemote lezioneDao;
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    public void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         String edificio = request.getParameter("ed");
@@ -46,5 +46,11 @@ public class EdificioServlet extends HttpServlet {
         request.setAttribute("ed", edificio);
 
         request.getRequestDispatcher("edificio.jsp").forward(request, response);
+    }
+
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        doGet(request, response);
     }
 }

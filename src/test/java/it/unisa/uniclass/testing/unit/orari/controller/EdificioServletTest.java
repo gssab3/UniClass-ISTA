@@ -2,7 +2,9 @@ package it.unisa.uniclass.testing.unit.orari.controller;
 
 import it.unisa.uniclass.orari.controller.EdificioServlet;
 import it.unisa.uniclass.orari.model.Aula;
-import it.unisa.uniclass.orari.service.AulaService;
+import it.unisa.uniclass.orari.model.Lezione;
+import it.unisa.uniclass.orari.service.dao.AulaRemote;
+import it.unisa.uniclass.orari.service.dao.LezioneRemote;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,280 +12,139 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Nested;
-import org.mockito.Mock;
-import org.mockito.MockedConstruction;
-import org.mockito.MockitoAnnotations;
 
-import javax.naming.NamingException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.reflect.Field;
+import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Test d'unità per il controller EdificioServlet.
- * Verifica le operazioni di ricerca delle aule per edificio con maximum branch coverage.
- */
-@DisplayName("Test per il controller EdificioServlet")
-public class EdificioServletTest {
+@DisplayName("Test per EdificioServlet")
+class EdificioServletTest {
 
-    @Mock
     private HttpServletRequest request;
-
-    @Mock
     private HttpServletResponse response;
+    private RequestDispatcher dispatcher;
 
-    @Mock
-    private RequestDispatcher requestDispatcher;
+    private AulaRemote aulaDao;
+    private LezioneRemote lezioneDao;
 
-    private TestableServlet servlet;
-    private List<Aula> aule;
+    private EdificioServlet servlet;
 
-    /**
-     * Classe estesa per accedere ai metodi protected del servlet
-     */
-    private static class TestableServlet extends EdificioServlet {
-        public void callDoGet(HttpServletRequest request, HttpServletResponse response)
-                throws ServletException, IOException {
-            doGet(request, response);
-        }
-
-        public void callDoPost(HttpServletRequest request, HttpServletResponse response)
-                throws ServletException, IOException {
-            doPost(request, response);
+    private void inject(Object target, String fieldName, Object value) {
+        try {
+            Field f = target.getClass().getDeclaredField(fieldName);
+            f.setAccessible(true);
+            f.set(target, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
     @BeforeEach
-    void setUp() throws Exception {
-        MockitoAnnotations.openMocks(this);
-        servlet = new TestableServlet();
+    void setUp() {
 
-        // Setup delle aule
-        aule = new ArrayList<>();
-        Aula aula1 = new Aula();
-        aula1.setNome("Aula 101");
-        aula1.setEdificio("Edificio A");
+        request = mock(HttpServletRequest.class);
+        response = mock(HttpServletResponse.class);
+        dispatcher = mock(RequestDispatcher.class);
 
-        Aula aula2 = new Aula();
-        aula2.setNome("Aula 102");
-        aula2.setEdificio("Edificio A");
+        servlet = new EdificioServlet();
 
-        aule.add(aula1);
-        aule.add(aula2);
+        aulaDao = mock(AulaRemote.class);
+        lezioneDao = mock(LezioneRemote.class);
 
-        // Setup del request dispatcher
-        when(request.getRequestDispatcher("/edificio.jsp")).thenReturn(requestDispatcher);
+        inject(servlet, "aulaDao", aulaDao);
+        inject(servlet, "lezioneDao", lezioneDao);
+
+        when(request.getRequestDispatcher("edificio.jsp"))
+                .thenReturn(dispatcher);
     }
 
-    @Nested
-    @DisplayName("Test doGet - Flusso Principale (Branch Coverage)")
-    class DoGetFlussoMainTest {
+    // ---------------------------------------------------------
+    // FLUSSO COMPLETO
+    // ---------------------------------------------------------
 
-        @Test
-        @DisplayName("doGet: recupera e visualizza aule per edificio")
-        void testDoGetFlussoCompleto() throws ServletException, IOException {
-            when(request.getParameter("ed")).thenReturn("Edificio A");
+    @Test
+    void testDoGetFlussoCompleto() throws Exception {
 
-            try (MockedConstruction<AulaService> mockedAulaService = mockConstruction(AulaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaAuleEdificio("Edificio A"))
-                                .thenReturn(aule);
-                    })) {
+        when(request.getParameter("ed")).thenReturn("Edificio A");
 
-                servlet.callDoGet(request, response);
+        Aula a1 = new Aula();
+        a1.setNome("Aula 101");
 
-                verify(request).getParameter("ed");
-                verify(request).setAttribute("aule", aule);
-                verify(request).setAttribute("ed", "Edificio A");
-                verify(request).getRequestDispatcher("/edificio.jsp");
-                verify(requestDispatcher).forward(request, response);
-            }
-        }
+        Aula a2 = new Aula();
+        a2.setNome("Aula 102");
 
-        @Test
-        @DisplayName("doGet: gestisce lista vuota di aule")
-        void testDoGetAuleVuote() throws ServletException, IOException {
-            when(request.getParameter("ed")).thenReturn("Edificio Vuoto");
+        List<Aula> aule = List.of(a1, a2);
 
-            try (MockedConstruction<AulaService> mockedAulaService = mockConstruction(AulaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaAuleEdificio("Edificio Vuoto"))
-                                .thenReturn(new ArrayList<>());
-                    })) {
+        when(aulaDao.trovaAuleEdificio("Edificio A"))
+                .thenReturn(aule);
 
-                servlet.callDoGet(request, response);
+        when(lezioneDao.trovaLezioniAule("Aula 101"))
+                .thenReturn(List.of(mock(Lezione.class)));
 
-                verify(request).setAttribute(eq("aule"), any(List.class));
-                verify(request).setAttribute("ed", "Edificio Vuoto");
-                verify(requestDispatcher).forward(request, response);
-            }
-        }
+        when(lezioneDao.trovaLezioniAule("Aula 102"))
+                .thenReturn(List.of(mock(Lezione.class)));
 
-        @Test
-        @DisplayName("doGet: gestisce multipli edifici con aule diverse")
-        void testDoGetMultipliEdifici() throws ServletException, IOException {
-            List<Aula> auleDifferenti = new ArrayList<>();
-            for (int i = 0; i < 3; i++) {
-                Aula aula = new Aula();
-                aula.setNome("Aula " + (200 + i));
-                aula.setEdificio("Edificio B");
-                auleDifferenti.add(aula);
-            }
+        servlet.doGet(request, response);
 
-            when(request.getParameter("ed")).thenReturn("Edificio B");
-
-            try (MockedConstruction<AulaService> mockedAulaService = mockConstruction(AulaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaAuleEdificio("Edificio B"))
-                                .thenReturn(auleDifferenti);
-                    })) {
-
-                servlet.callDoGet(request, response);
-
-                verify(request).setAttribute("aule", auleDifferenti);
-                verify(request).setAttribute("ed", "Edificio B");
-                verify(requestDispatcher).forward(request, response);
-            }
-        }
+        verify(request).setAttribute("aule", aule);
+        verify(request).setAttribute(eq("lezioniPerAula"), any(Map.class));
+        verify(request).setAttribute("ed", "Edificio A");
+        verify(dispatcher).forward(request, response);
     }
 
-    @Nested
-    @DisplayName("Test doGet - Eccezioni e Branch Coverage")
-    class DoGetExceptionTest {
+    // ---------------------------------------------------------
+    // LISTA AULE NULL
+    // ---------------------------------------------------------
 
-        @Test
-        @DisplayName("doGet: gestisce parametro null")
-        void testDoGetParametroNull() throws ServletException, IOException {
-            when(request.getParameter("ed")).thenReturn(null);
+    @Test
+    void testDoGetAuleNull() throws Exception {
 
-            try (MockedConstruction<AulaService> mockedAulaService = mockConstruction(AulaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaAuleEdificio(null))
-                                .thenReturn(new ArrayList<>());
-                    })) {
+        when(request.getParameter("ed")).thenReturn("Edificio X");
+        when(aulaDao.trovaAuleEdificio("Edificio X"))
+                .thenReturn(null);
 
-                servlet.callDoGet(request, response);
+        servlet.doGet(request, response);
 
-                verify(request).setAttribute("ed", null);
-                verify(request).setAttribute(eq("aule"), any(List.class));
-                verify(requestDispatcher).forward(request, response);
-            }
-        }
+        verify(request).setAttribute("aule", null);
+        verify(request).setAttribute(eq("lezioniPerAula"), any(Map.class));
+        verify(dispatcher).forward(request, response);
 
-        @Test
-        @DisplayName("doGet: gestisce parametri diversi")
-        void testDoGetParametriDiversi() throws ServletException, IOException {
-            String[] edifici = {"Edificio A", "Edificio B", "Edificio C"};
-
-            for (String edificio : edifici) {
-                when(request.getParameter("ed")).thenReturn(edificio);
-
-                try (MockedConstruction<AulaService> mockedAulaService = mockConstruction(AulaService.class,
-                        (mock, context) -> {
-                            when(mock.trovaAuleEdificio(edificio))
-                                    .thenReturn(new ArrayList<>());
-                        })) {
-
-                    servlet.callDoGet(request, response);
-
-                    verify(request).setAttribute("ed", edificio);
-                }
-            }
-        }
+        verify(lezioneDao, never()).trovaLezioniAule(any());
     }
 
-    @Nested
-    @DisplayName("Test doPost - Comportamento (Branch Coverage)")
-    class DoPostTest {
+    // ---------------------------------------------------------
+    // PARAMETRO NULL
+    // ---------------------------------------------------------
 
-        @Test
-        @DisplayName("doPost: delega completamente a doGet")
-        void testDoPostDelegaADoGet() throws ServletException, IOException {
-            when(request.getParameter("ed")).thenReturn("Edificio A");
+    @Test
+    void testDoGetParametroNull() throws Exception {
 
-            try (MockedConstruction<AulaService> mockedAulaService = mockConstruction(AulaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaAuleEdificio("Edificio A"))
-                                .thenReturn(aule);
-                    })) {
+        when(request.getParameter("ed")).thenReturn(null);
+        when(aulaDao.trovaAuleEdificio(null))
+                .thenReturn(new ArrayList<>());
 
-                servlet.callDoPost(request, response);
+        servlet.doGet(request, response);
 
-                verify(request).getParameter("ed");
-                verify(request).setAttribute("aule", aule);
-                verify(requestDispatcher).forward(request, response);
-            }
-        }
-
-        @Test
-        @DisplayName("doPost: esegue esattamente il comportamento di doGet")
-        void testDoPostComportamentoIdentico() throws ServletException, IOException {
-            when(request.getParameter("ed")).thenReturn("Edificio X");
-
-            try (MockedConstruction<AulaService> mockedAulaService = mockConstruction(AulaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaAuleEdificio("Edificio X"))
-                                .thenReturn(aule);
-                    })) {
-
-                servlet.callDoPost(request, response);
-
-                verify(request).setAttribute("ed", "Edificio X");
-                verify(request).setAttribute("aule", aule);
-                verify(requestDispatcher).forward(request, response);
-            }
-        }
+        verify(request).setAttribute(eq("aule"), any(List.class));
+        verify(dispatcher).forward(request, response);
     }
 
-    @Nested
-    @DisplayName("Test Integrazione - Maximum Branch Coverage")
-    class IntegrationTestMaxCoverage {
+    // ---------------------------------------------------------
+    // DOPOST DELEGA
+    // ---------------------------------------------------------
 
-        @Test
-        @DisplayName("Integrazione: flusso completo GET -> POST -> forward")
-        void testIntegrazioneFlussoCompleto() throws ServletException, IOException {
-            when(request.getParameter("ed")).thenReturn("Edificio A");
+    @Test
+    void testDoPostDelegaADoGet() throws Exception {
 
-            try (MockedConstruction<AulaService> mockedAulaService = mockConstruction(AulaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaAuleEdificio("Edificio A"))
-                                .thenReturn(aule);
-                    })) {
+        when(request.getParameter("ed")).thenReturn("Edificio A");
+        when(aulaDao.trovaAuleEdificio("Edificio A"))
+                .thenReturn(new ArrayList<>());
 
-                // Testa sia GET che POST
-                servlet.callDoGet(request, response);
-                servlet.callDoPost(request, response);
+        servlet.doPost(request, response);
 
-                // Forward deve essere chiamato 2 volte
-                verify(requestDispatcher, times(2)).forward(request, response);
-                // Attributi devono essere settati per entrambe le richieste
-                verify(request, atLeastOnce()).setAttribute("aule", aule);
-                verify(request, atLeastOnce()).setAttribute("ed", "Edificio A");
-            }
-        }
-
-        @Test
-        @DisplayName("Integrazione: GET e POST con parametri diversi")
-        void testIntegrazioneParametriDiversi() throws ServletException, IOException {
-            when(request.getParameter("ed")).thenReturn("Edificio X");
-
-            try (MockedConstruction<AulaService> mockedAulaService = mockConstruction(AulaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaAuleEdificio("Edificio X"))
-                                .thenReturn(aule);
-                    })) {
-
-                servlet.callDoGet(request, response);
-                servlet.callDoPost(request, response);
-
-                verify(request, atLeastOnce()).setAttribute("ed", "Edificio X");
-                verify(requestDispatcher, times(2)).forward(request, response);
-            }
-        }
+        verify(dispatcher).forward(request, response);
     }
 }
-

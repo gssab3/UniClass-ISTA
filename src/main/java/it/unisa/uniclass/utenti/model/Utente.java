@@ -91,4 +91,19 @@ public class Utente implements Serializable {
 
     public Tipo getTipo() {return tipo;}
     public void setTipo(Tipo tipo) {this.tipo = tipo;}
+
+    // --- toString ---
+    @Override
+    public String toString() {
+        return "Utente{" +
+                "email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", nome='" + nome + '\'' +
+                ", cognome='" + cognome + '\'' +
+                ", dataNascita=" + dataNascita +
+                ", telefono='" + telefono + '\'' +
+                ", iscrizione=" + iscrizione +
+                ", tipo=" + tipo +
+                '}';
+    }
 }

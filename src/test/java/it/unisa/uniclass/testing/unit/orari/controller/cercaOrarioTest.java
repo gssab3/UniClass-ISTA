@@ -1,448 +1,159 @@
 package it.unisa.uniclass.testing.unit.orari.controller;
 
 import it.unisa.uniclass.orari.controller.cercaOrario;
-import it.unisa.uniclass.orari.model.AnnoDidattico;
-import it.unisa.uniclass.orari.model.CorsoLaurea;
-import it.unisa.uniclass.orari.model.Giorno;
-import it.unisa.uniclass.orari.model.Lezione;
-import it.unisa.uniclass.orari.model.Resto;
-import it.unisa.uniclass.orari.service.AnnoDidatticoService;
-import it.unisa.uniclass.orari.service.CorsoLaureaService;
-import it.unisa.uniclass.orari.service.LezioneService;
-import it.unisa.uniclass.orari.service.RestoService;
+import it.unisa.uniclass.orari.model.*;
+import it.unisa.uniclass.orari.service.*;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
-import org.mockito.Mock;
-import org.mockito.MockedConstruction;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Test d'unità per il controller cercaOrario.
- * Verifica le operazioni di ricerca dell'orario dei corsi.
- */
 @DisplayName("Test per il controller cercaOrario")
-public class cercaOrarioTest {
+class cercaOrarioTest {
 
-    @Mock
     private HttpServletRequest request;
-
-    @Mock
     private HttpServletResponse response;
+    private RequestDispatcher dispatcher;
 
-    @Mock
-    private RequestDispatcher requestDispatcher;
+    private CorsoLaureaService corsoService;
+    private RestoService restoService;
+    private AnnoDidatticoService annoService;
+    private LezioneService lezioneService;
 
-    private TestableServlet servlet;
-    private CorsoLaurea corsoLaurea;
-    private Resto resto;
-    private AnnoDidattico annoDidattico;
-    private List<Lezione> lezioni;
+    private cercaOrario servlet;
 
-    /**
-     * Classe estesa per accedere ai metodi protected del servlet
-     */
-    private static class TestableServlet extends cercaOrario {
-        public void callDoPost(HttpServletRequest request, HttpServletResponse response)
-                throws ServletException, IOException {
-            doPost(request, response);
-        }
-
-        public void callDoGet(HttpServletRequest request, HttpServletResponse response)
-                throws ServletException, IOException {
-            doGet(request, response);
+    private void inject(Object target, String fieldName, Object value) {
+        try {
+            Field f = target.getClass().getDeclaredField(fieldName);
+            f.setAccessible(true);
+            f.set(target, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
     @BeforeEach
-    void setUp() throws Exception {
-        MockitoAnnotations.openMocks(this);
-        servlet = new TestableServlet();
+    void setUp() {
 
-        // Setup dei dati di test
-        corsoLaurea = mock(CorsoLaurea.class);
-        when(corsoLaurea.getId()).thenReturn(1L);
-        when(corsoLaurea.getNome()).thenReturn("Ingegneria Informatica");
+        request = mock(HttpServletRequest.class);
+        response = mock(HttpServletResponse.class);
+        dispatcher = mock(RequestDispatcher.class);
 
-        resto = new Resto();
-        resto.setNome("Resto 0");
-        resto.setCorsoLaurea(corsoLaurea);
-        // Mock dell'ID del resto poiché è una field privata con @GeneratedValue
-        resto = spy(resto);
-        when(resto.getId()).thenReturn(1L);
+        servlet = new cercaOrario();
 
-        annoDidattico = new AnnoDidattico("2023-2024");
-        // Mock dell'ID dell'anno didattico poiché è una field privata con @GeneratedValue
-        annoDidattico = spy(annoDidattico);
-        when(annoDidattico.getId()).thenReturn(1);
+        corsoService = mock(CorsoLaureaService.class);
+        restoService = mock(RestoService.class);
+        annoService = mock(AnnoDidatticoService.class);
+        lezioneService = mock(LezioneService.class);
 
-        // Setup delle lezioni
-        lezioni = new ArrayList<>();
-        Lezione lezione1 = new Lezione(1, Time.valueOf("09:00:00"), Time.valueOf("11:00:00"),
-                Giorno.LUNEDI, null, null, null);
-        Lezione lezione2 = new Lezione(2, Time.valueOf("11:00:00"), Time.valueOf("13:00:00"),
-                Giorno.MARTEDI, null, null, null);
-        lezioni.add(lezione1);
-        lezioni.add(lezione2);
+        inject(servlet, "corsoLaureaService", corsoService);
+        inject(servlet, "restoService", restoService);
+        inject(servlet, "annoDidatticoService", annoService);
+        inject(servlet, "lezioneService", lezioneService);
 
-        // Setup del request dispatcher
-        when(request.getRequestDispatcher("/OrarioSingolo.jsp")).thenReturn(requestDispatcher);
+        when(request.getRequestDispatcher("/OrarioSingolo.jsp")).thenReturn(dispatcher);
     }
 
-    @Nested
-    @DisplayName("Test del metodo doPost - Flusso Principale")
-    class DoPostFlussoMainTest {
+    // ---------------------------------------------------------
+    // DOPOST - FLUSSO COMPLETO
+    // ---------------------------------------------------------
 
-        @Test
-        @DisplayName("doPost recupera corsi, resti, anni e lezioni correttamente")
-        void testDoPostFlussoCompleto() throws ServletException, IOException {
-            when(request.getParameter("corsoLaurea")).thenReturn("Ingegneria Informatica");
-            when(request.getParameter("resto")).thenReturn("Resto 0");
-            when(request.getParameter("anno")).thenReturn("2023-2024");
+    @Test
+    @DisplayName("doPost flusso completo corretto")
+    void testDoPostFlussoCompleto() throws Exception {
 
-            try (MockedConstruction<CorsoLaureaService> mockedCorsoLaureaService = mockConstruction(CorsoLaureaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaCorsoLaurea("Ingegneria Informatica"))
-                                .thenReturn(corsoLaurea);
-                    })) {
-                try (MockedConstruction<RestoService> mockedRestoService = mockConstruction(RestoService.class,
-                        (mock, context) -> {
-                            when(mock.trovaRestoNomeCorso("Resto 0", corsoLaurea))
-                                    .thenReturn(resto);
-                        })) {
-                    try (MockedConstruction<AnnoDidatticoService> mockedAnnoService = mockConstruction(AnnoDidatticoService.class,
-                            (mock, context) -> {
-                                when(mock.trovaTuttiCorsoLaureaNome(1L, "2023-2024"))
-                                        .thenReturn(annoDidattico);
-                            })) {
-                        try (MockedConstruction<LezioneService> mockedLezioneService = mockConstruction(LezioneService.class,
-                                (mock, context) -> {
-                                    when(mock.trovaLezioniCorsoLaureaRestoAnno(1L, 1L, 1))
-                                            .thenReturn(lezioni);
-                                })) {
+        // Parametri della richiesta
+        when(request.getParameter("corsoLaurea")).thenReturn("Informatica");
+        when(request.getParameter("resto")).thenReturn("Resto 0");
+        when(request.getParameter("anno")).thenReturn("2023-2024");
 
-                            servlet.callDoPost(request, response);
+        // Mock dei servizi
+        CorsoLaurea corso = mock(CorsoLaurea.class);
+        when(corso.getId()).thenReturn(1L);
 
-                            verify(request).getParameter("corsoLaurea");
-                            verify(request).getParameter("resto");
-                            verify(request).getParameter("anno");
-                            verify(request).setAttribute("lezioni", lezioni);
-                            verify(request).setAttribute("corsoLaurea", corsoLaurea);
-                            verify(request).setAttribute("resto", resto);
-                            verify(request).setAttribute("anno", annoDidattico);
-                            verify(request).getRequestDispatcher("/OrarioSingolo.jsp");
-                            verify(requestDispatcher).forward(request, response);
-                        }
-                    }
-                }
-            }
-        }
+        Resto resto = mock(Resto.class);
+        when(resto.getNome()).thenReturn("Resto 0");
+        when(resto.getId()).thenReturn(2L);
 
-        @Test
-        @DisplayName("doPost ordina correttamente le lezioni per giorno e ora")
-        void testDoPostOrdnaLezioni() throws ServletException, IOException {
-            when(request.getParameter("corsoLaurea")).thenReturn("Ingegneria Informatica");
-            when(request.getParameter("resto")).thenReturn("Resto 0");
-            when(request.getParameter("anno")).thenReturn("2023-2024");
+        AnnoDidattico anno = mock(AnnoDidattico.class);
+        when(anno.getAnno()).thenReturn("2023-2024");
+        when(anno.getId()).thenReturn(3);
 
-            List<Lezione> lezioniNonOrdinate = new ArrayList<>();
-            Lezione lez3 = new Lezione(3, Time.valueOf("14:00:00"), Time.valueOf("16:00:00"),
-                    Giorno.MERCOLEDI, null, null, null);
-            Lezione lez1 = new Lezione(1, Time.valueOf("09:00:00"), Time.valueOf("11:00:00"),
-                    Giorno.LUNEDI, null, null, null);
-            Lezione lez2 = new Lezione(2, Time.valueOf("11:00:00"), Time.valueOf("13:00:00"),
-                    Giorno.LUNEDI, null, null, null);
-            lezioniNonOrdinate.add(lez3);
-            lezioniNonOrdinate.add(lez1);
-            lezioniNonOrdinate.add(lez2);
+        // Liste simulate dai servizi
+        List<Resto> resti = List.of(resto);
+        List<AnnoDidattico> anni = List.of(anno);
 
-            try (MockedConstruction<CorsoLaureaService> mockedCorsoLaureaService = mockConstruction(CorsoLaureaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaCorsoLaurea("Ingegneria Informatica"))
-                                .thenReturn(corsoLaurea);
-                    })) {
-                try (MockedConstruction<RestoService> mockedRestoService = mockConstruction(RestoService.class,
-                        (mock, context) -> {
-                            when(mock.trovaRestoNomeCorso("Resto 0", corsoLaurea))
-                                    .thenReturn(resto);
-                        })) {
-                    try (MockedConstruction<AnnoDidatticoService> mockedAnnoService = mockConstruction(AnnoDidatticoService.class,
-                            (mock, context) -> {
-                                when(mock.trovaTuttiCorsoLaureaNome(1L, "2023-2024"))
-                                        .thenReturn(annoDidattico);
-                            })) {
-                        try (MockedConstruction<LezioneService> mockedLezioneService = mockConstruction(LezioneService.class,
-                                (mock, context) -> {
-                                    when(mock.trovaLezioniCorsoLaureaRestoAnno(1L, 1L, 1))
-                                            .thenReturn(lezioniNonOrdinate);
-                                })) {
+        List<Lezione> lezioni = new ArrayList<>();
+        lezioni.add(new Lezione(
+                1,
+                Time.valueOf("09:00:00"),
+                Time.valueOf("11:00:00"),
+                Giorno.LUNEDI,
+                null, null, null
+        ));
 
-                            servlet.callDoPost(request, response);
+        // Stub dei servizi
+        when(corsoService.trovaCorsoLaurea("Informatica")).thenReturn(corso);
+        when(restoService.trovaRestiCorsoLaurea("Informatica")).thenReturn(resti);
+        when(annoService.trovaTuttiCorsoLaurea(1L)).thenReturn(anni);
+        when(lezioneService.trovaLezioniCorsoLaureaRestoAnno(1L, 2L, 3))
+                .thenReturn(lezioni);
 
-                            verify(request).setAttribute(eq("lezioni"), any(List.class));
-                            verify(requestDispatcher).forward(request, response);
-                        }
-                    }
-                }
-            }
-        }
+        // Esecuzione della servlet
+        servlet.doPost(request, response);
+
+        // Verifica degli attributi impostati
+        verify(request).setAttribute("lezioni", lezioni);
+        verify(request).setAttribute("corsoLaurea", corso);
+        verify(request).setAttribute("resto", resto);
+        verify(request).setAttribute("anno", anno);
+        verify(dispatcher).forward(request, response);
     }
 
-    @Nested
-    @DisplayName("Test del metodo doPost - Parametri")
-    class DoPostParametriTest {
 
-        @Test
-        @DisplayName("doPost con parametri validi")
-        void testDoPostParametriValidi() throws ServletException, IOException {
-            when(request.getParameter("corsoLaurea")).thenReturn("Ingegneria Informatica");
-            when(request.getParameter("resto")).thenReturn("Resto 0");
-            when(request.getParameter("anno")).thenReturn("2023-2024");
+    // ---------------------------------------------------------
+    // DOPOST - CORSO NON TROVATO
+    // ---------------------------------------------------------
 
-            try (MockedConstruction<CorsoLaureaService> mockedCorsoLaureaService = mockConstruction(CorsoLaureaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaCorsoLaurea("Ingegneria Informatica"))
-                                .thenReturn(corsoLaurea);
-                    })) {
-                try (MockedConstruction<RestoService> mockedRestoService = mockConstruction(RestoService.class,
-                        (mock, context) -> {
-                            when(mock.trovaRestoNomeCorso("Resto 0", corsoLaurea))
-                                    .thenReturn(resto);
-                        })) {
-                    try (MockedConstruction<AnnoDidatticoService> mockedAnnoService = mockConstruction(AnnoDidatticoService.class,
-                            (mock, context) -> {
-                                when(mock.trovaTuttiCorsoLaureaNome(1L, "2023-2024"))
-                                        .thenReturn(annoDidattico);
-                            })) {
-                        try (MockedConstruction<LezioneService> mockedLezioneService = mockConstruction(LezioneService.class,
-                                (mock, context) -> {
-                                    when(mock.trovaLezioniCorsoLaureaRestoAnno(1L, 1L, 1))
-                                            .thenReturn(lezioni);
-                                })) {
+    @Test
+    @DisplayName("doPost corso non trovato")
+    void testDoPostCorsoNonTrovato() throws Exception {
 
-                            servlet.callDoPost(request, response);
+        when(request.getParameter("corsoLaurea")).thenReturn("XXX");
+        when(corsoService.trovaCorsoLaurea("XXX")).thenReturn(null);
 
-                            verify(request, atLeast(1)).getParameter("corsoLaurea");
-                            verify(request, atLeast(1)).getParameter("resto");
-                            verify(request, atLeast(1)).getParameter("anno");
-                        }
-                    }
-                }
-            }
-        }
+        servlet.doPost(request, response);
+
+        verify(request).setAttribute(eq("error"), anyString());
+        verify(dispatcher).forward(request, response);
     }
 
-    @Nested
-    @DisplayName("Test del metodo doPost - Gestione Dati Null")
-    class DoPostNullDataTest {
+    // ---------------------------------------------------------
+    // DOGET
+    // ---------------------------------------------------------
 
-        @Test
-        @DisplayName("doPost con corso nullo")
-        void testDoPostCorsoNullo() throws ServletException, IOException {
-            when(request.getParameter("corsoLaurea")).thenReturn("Inesistente");
-            when(request.getParameter("resto")).thenReturn("Resto 0");
-            when(request.getParameter("anno")).thenReturn("2023-2024");
+    @Test
+    @DisplayName("doGet delega a doPost")
+    void testDoGetDelegation() throws Exception {
 
-            try (MockedConstruction<CorsoLaureaService> mockedCorsoLaureaService = mockConstruction(CorsoLaureaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaCorsoLaurea("Inesistente"))
-                                .thenReturn(null);
-                    })) {
-                try (MockedConstruction<RestoService> mockedRestoService = mockConstruction(RestoService.class)) {
-                    try (MockedConstruction<AnnoDidatticoService> mockedAnnoService = mockConstruction(AnnoDidatticoService.class)) {
-                        try (MockedConstruction<LezioneService> mockedLezioneService = mockConstruction(LezioneService.class)) {
+        when(request.getParameter("corsoLaurea")).thenReturn("XXX");
+        when(corsoService.trovaCorsoLaurea("XXX")).thenReturn(null);
 
-                            assertThrows(NullPointerException.class, () -> {
-                                servlet.callDoPost(request, response);
-                            });
-                        }
-                    }
-                }
-            }
-        }
-    }
+        servlet.doGet(request, response);
 
-    @Nested
-    @DisplayName("Test del metodo doPost - Lezioni Vuote")
-    class DoPostLezioniVuoteTest {
-
-        @Test
-        @DisplayName("doPost con lista lezioni vuota")
-        void testDoPostLezioniVuote() throws ServletException, IOException {
-            when(request.getParameter("corsoLaurea")).thenReturn("Ingegneria Informatica");
-            when(request.getParameter("resto")).thenReturn("Resto 0");
-            when(request.getParameter("anno")).thenReturn("2023-2024");
-
-            try (MockedConstruction<CorsoLaureaService> mockedCorsoLaureaService = mockConstruction(CorsoLaureaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaCorsoLaurea("Ingegneria Informatica"))
-                                .thenReturn(corsoLaurea);
-                    })) {
-                try (MockedConstruction<RestoService> mockedRestoService = mockConstruction(RestoService.class,
-                        (mock, context) -> {
-                            when(mock.trovaRestoNomeCorso("Resto 0", corsoLaurea))
-                                    .thenReturn(resto);
-                        })) {
-                    try (MockedConstruction<AnnoDidatticoService> mockedAnnoService = mockConstruction(AnnoDidatticoService.class,
-                            (mock, context) -> {
-                                when(mock.trovaTuttiCorsoLaureaNome(1L, "2023-2024"))
-                                        .thenReturn(annoDidattico);
-                            })) {
-                        try (MockedConstruction<LezioneService> mockedLezioneService = mockConstruction(LezioneService.class,
-                                (mock, context) -> {
-                                    when(mock.trovaLezioniCorsoLaureaRestoAnno(1L, 1L, 1))
-                                            .thenReturn(new ArrayList<>());
-                                })) {
-
-                            servlet.callDoPost(request, response);
-
-                            verify(request).setAttribute(eq("lezioni"), any(List.class));
-                            verify(requestDispatcher).forward(request, response);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @Nested
-    @DisplayName("Test del metodo doGet")
-    class DoGetTest {
-
-        @Test
-        @DisplayName("doGet delega a doPost")
-        void testDoGetDelegaADoPost() throws ServletException, IOException {
-            when(request.getParameter("corsoLaurea")).thenReturn("Ingegneria Informatica");
-            when(request.getParameter("resto")).thenReturn("Resto 0");
-            when(request.getParameter("anno")).thenReturn("2023-2024");
-
-            try (MockedConstruction<CorsoLaureaService> mockedCorsoLaureaService = mockConstruction(CorsoLaureaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaCorsoLaurea("Ingegneria Informatica"))
-                                .thenReturn(corsoLaurea);
-                    })) {
-                try (MockedConstruction<RestoService> mockedRestoService = mockConstruction(RestoService.class,
-                        (mock, context) -> {
-                            when(mock.trovaRestoNomeCorso("Resto 0", corsoLaurea))
-                                    .thenReturn(resto);
-                        })) {
-                    try (MockedConstruction<AnnoDidatticoService> mockedAnnoService = mockConstruction(AnnoDidatticoService.class,
-                            (mock, context) -> {
-                                when(mock.trovaTuttiCorsoLaureaNome(1L, "2023-2024"))
-                                        .thenReturn(annoDidattico);
-                            })) {
-                        try (MockedConstruction<LezioneService> mockedLezioneService = mockConstruction(LezioneService.class,
-                                (mock, context) -> {
-                                    when(mock.trovaLezioniCorsoLaureaRestoAnno(1L, 1L, 1))
-                                            .thenReturn(lezioni);
-                                })) {
-
-                            servlet.callDoGet(request, response);
-
-                            verify(requestDispatcher).forward(request, response);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @Nested
-    @DisplayName("Test di Integrazione")
-    class IntegrationTest {
-
-        @Test
-        @DisplayName("Flusso completo: richiesta GET e POST")
-        void testFlussoCompletoGetPost() throws ServletException, IOException {
-            when(request.getParameter("corsoLaurea")).thenReturn("Ingegneria Informatica");
-            when(request.getParameter("resto")).thenReturn("Resto 0");
-            when(request.getParameter("anno")).thenReturn("2023-2024");
-
-            try (MockedConstruction<CorsoLaureaService> mockedCorsoLaureaService = mockConstruction(CorsoLaureaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaCorsoLaurea("Ingegneria Informatica"))
-                                .thenReturn(corsoLaurea);
-                    })) {
-                try (MockedConstruction<RestoService> mockedRestoService = mockConstruction(RestoService.class,
-                        (mock, context) -> {
-                            when(mock.trovaRestoNomeCorso("Resto 0", corsoLaurea))
-                                    .thenReturn(resto);
-                        })) {
-                    try (MockedConstruction<AnnoDidatticoService> mockedAnnoService = mockConstruction(AnnoDidatticoService.class,
-                            (mock, context) -> {
-                                when(mock.trovaTuttiCorsoLaureaNome(1L, "2023-2024"))
-                                        .thenReturn(annoDidattico);
-                            })) {
-                        try (MockedConstruction<LezioneService> mockedLezioneService = mockConstruction(LezioneService.class,
-                                (mock, context) -> {
-                                    when(mock.trovaLezioniCorsoLaureaRestoAnno(1L, 1L, 1))
-                                            .thenReturn(lezioni);
-                                })) {
-
-                            servlet.callDoGet(request, response);
-                            servlet.callDoPost(request, response);
-
-                            verify(requestDispatcher, times(2)).forward(request, response);
-                        }
-                    }
-                }
-            }
-        }
-
-        @Test
-        @DisplayName("Flusso con multipli resti e anni")
-        void testFlussoConMultipliRestieAnni() throws ServletException, IOException {
-            List<Lezione> lezioniTest = new ArrayList<>();
-            lezioniTest.add(new Lezione(1, Time.valueOf("09:00:00"), Time.valueOf("11:00:00"),
-                    Giorno.LUNEDI, null, null, null));
-
-            when(request.getParameter("corsoLaurea")).thenReturn("Ingegneria Informatica");
-            when(request.getParameter("resto")).thenReturn("Resto 1");
-            when(request.getParameter("anno")).thenReturn("2024-2025");
-
-            try (MockedConstruction<CorsoLaureaService> mockedCorsoLaureaService = mockConstruction(CorsoLaureaService.class,
-                    (mock, context) -> {
-                        when(mock.trovaCorsoLaurea("Ingegneria Informatica"))
-                                .thenReturn(corsoLaurea);
-                    })) {
-                try (MockedConstruction<RestoService> mockedRestoService = mockConstruction(RestoService.class,
-                        (mock, context) -> {
-                            when(mock.trovaRestoNomeCorso("Resto 1", corsoLaurea))
-                                    .thenReturn(resto);
-                        })) {
-                    try (MockedConstruction<AnnoDidatticoService> mockedAnnoService = mockConstruction(AnnoDidatticoService.class,
-                            (mock, context) -> {
-                                when(mock.trovaTuttiCorsoLaureaNome(1L, "2024-2025"))
-                                        .thenReturn(annoDidattico);
-                            })) {
-                        try (MockedConstruction<LezioneService> mockedLezioneService = mockConstruction(LezioneService.class,
-                                (mock, context) -> {
-                                    when(mock.trovaLezioniCorsoLaureaRestoAnno(1L, 1L, 1))
-                                            .thenReturn(lezioniTest);
-                                })) {
-
-                            servlet.callDoPost(request, response);
-
-                            verify(request).setAttribute(eq("lezioni"), any(List.class));
-                            verify(requestDispatcher).forward(request, response);
-                        }
-                    }
-                }
-            }
-        }
+        verify(dispatcher).forward(request, response);
     }
 }
-

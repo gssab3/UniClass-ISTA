@@ -40,12 +40,13 @@ public class LezioneDAO implements LezioneRemote {
 
     @Override
     public List<Lezione> trovaLezioniOreGiorno(Time oraInizio, Time oraFine, Giorno giorno) {
-        return emUniClass.createNamedQuery(Lezione.TROVA_LEZIONE_ORE_GIORNO, Lezione.class)
+        return emUniClass.createNamedQuery(Lezione.TROVA_LEZIONE_ORE, Lezione.class)
                 .setParameter("oraInizio", oraInizio)
                 .setParameter("oraFine", oraFine)
                 .setParameter("giorno", giorno)
                 .getResultList();
     }
+
 
     @Override
     public List<Lezione> trovaLezioniAule(String nome) {

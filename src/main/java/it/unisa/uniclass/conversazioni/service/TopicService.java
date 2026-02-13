@@ -16,6 +16,10 @@ public class TopicService {
     public TopicService() {
     }
 
+    public TopicService(TopicRemote topicDao) {
+        this.topicDao = topicDao;
+    }
+
     public Topic trovaId(long id) {
         try {
             return topicDao.trovaId(id);

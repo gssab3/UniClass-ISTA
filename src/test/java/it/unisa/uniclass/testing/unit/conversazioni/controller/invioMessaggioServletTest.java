@@ -24,8 +24,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +43,6 @@ class invioMessaggioServletTest {
     void setUp() throws Exception {
         servlet = new invioMessaggioServlet();
 
-        // Iniezione EJB manuale
         Field msgField = invioMessaggioServlet.class.getDeclaredField("messaggioService");
         msgField.setAccessible(true);
         msgField.set(servlet, messaggioService);
@@ -53,7 +51,6 @@ class invioMessaggioServletTest {
         userField.setAccessible(true);
         userField.set(servlet, userDirectory);
 
-        // Mocks base
         lenient().when(request.getSession()).thenReturn(session);
         lenient().when(request.getServletContext()).thenReturn(servletContext);
     }
@@ -61,7 +58,7 @@ class invioMessaggioServletTest {
     @Test
     @DisplayName("DoGet: Invio Messaggio con Topic")
     void testDoGet_WithTopic() throws IOException {
-        // Arrange
+
         String emailSelf = "me@unisa.it";
         String emailDest = "dest@unisa.it";
         String testo = "Hello";
@@ -72,9 +69,10 @@ class invioMessaggioServletTest {
         when(request.getParameter("testo")).thenReturn(testo);
         when(request.getParameter("topic")).thenReturn(topicName);
 
-        Accademico self = new Accademico(); self.setMatricola("123");
-        // CorsoLaurea serve per il topic
+        Accademico self = new Accademico();
+        self.setMatricola("123");
         self.setCorsoLaurea(new CorsoLaurea());
+
         Accademico dest = new Accademico();
 
         when(userDirectory.getAccademico(emailSelf)).thenReturn(self);
@@ -83,62 +81,89 @@ class invioMessaggioServletTest {
         when(messaggioService.trovaTutti()).thenReturn(new ArrayList<>());
         when(messaggioService.trovaMessaggeriDiUnAccademico("123")).thenReturn(new ArrayList<>());
 
-        // Act
         servlet.doGet(request, response);
 
-        // Assert
         ArgumentCaptor<Messaggio> captor = ArgumentCaptor.forClass(Messaggio.class);
         verify(messaggioService).aggiungiMessaggio(captor.capture());
 
         Messaggio capturedMsg = captor.getValue();
         assertEquals(testo, capturedMsg.getBody());
-        assertNotNull(capturedMsg.getTopic(), "Il topic deve essere creato");
+        assertNotNull(capturedMsg.getTopic());
         assertEquals(topicName, capturedMsg.getTopic().getNome());
 
         verify(response).sendRedirect("Conversazioni");
     }
 
     @Test
-    @DisplayName("DoGet: Invio Messaggio senza Topic (Branch Coverage)")
+    @DisplayName("DoGet: Invio Messaggio senza Topic")
     void testDoGet_NoTopic() throws IOException {
+
         when(session.getAttribute("utenteEmail")).thenReturn("a@a.it");
         when(request.getParameter("email")).thenReturn("b@b.it");
-        when(request.getParameter("topic")).thenReturn(""); // O null
+        when(request.getParameter("testo")).thenReturn("ciao");
+        when(request.getParameter("topic")).thenReturn("");
 
-        when(userDirectory.getAccademico(anyString())).thenReturn(new Accademico());
+        Accademico self = new Accademico();
+        self.setMatricola("999"); // IMPORTANTISSIMO per evitare NPE
+        self.setCorsoLaurea(new CorsoLaurea());
+
+        Accademico dest = new Accademico();
+
+        when(userDirectory.getAccademico("a@a.it")).thenReturn(self);
+        when(userDirectory.getAccademico("b@b.it")).thenReturn(dest);
+
+        when(messaggioService.trovaTutti()).thenReturn(new ArrayList<>());
+        when(messaggioService.trovaMessaggeriDiUnAccademico("999")).thenReturn(new ArrayList<>());
 
         servlet.doGet(request, response);
 
         ArgumentCaptor<Messaggio> captor = ArgumentCaptor.forClass(Messaggio.class);
         verify(messaggioService).aggiungiMessaggio(captor.capture());
 
-        assertNull(captor.getValue().getTopic(), "Il topic deve essere null se vuoto in input");
+        Messaggio msg = captor.getValue();
+        assertNull(msg.getTopic());
+
         verify(response).sendRedirect("Conversazioni");
     }
 
     @Test
-    @DisplayName("DoGet: Errore utenti non trovati")
+    @DisplayName("DoGet: Utente non trovato -> Errore 500")
     void testDoGet_UsersNotFound() throws IOException {
+
         when(session.getAttribute("utenteEmail")).thenReturn("me");
         when(request.getParameter("email")).thenReturn("you");
 
         when(userDirectory.getAccademico("me")).thenReturn(new Accademico());
-        when(userDirectory.getAccademico("you")).thenReturn(null); // Destinatario mancante
+        when(userDirectory.getAccademico("you")).thenReturn(null);
 
         servlet.doGet(request, response);
 
         verify(messaggioService, never()).aggiungiMessaggio(any());
-        verify(servletContext).log(eq("Error sending message"), any(ServletException.class));
+        verify(servletContext).log(eq("Error sending message"), any(Exception.class));
+        verify(response).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
+    @DisplayName("DoGet: Eccezione generica -> catch branch")
+    void testDoGet_RuntimeException() throws IOException {
+
+        when(request.getSession()).thenThrow(new RuntimeException("Boom"));
+
+        servlet.doGet(request, response);
+
+        verify(servletContext).log(eq("Error sending message"), any(RuntimeException.class));
         verify(response).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
 
     @Test
     @DisplayName("DoPost: Delega a DoGet")
     void testDoPost() throws ServletException, IOException {
-        when(request.getSession()).thenThrow(new RuntimeException("Delega OK"));
+
+        when(request.getSession()).thenThrow(new RuntimeException("Delegation"));
 
         servlet.doPost(request, response);
 
-        verify(servletContext).log(anyString(), any(RuntimeException.class));
+        verify(servletContext).log(eq("Error sending message"), any(RuntimeException.class));
+        verify(response).sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
     }
 }

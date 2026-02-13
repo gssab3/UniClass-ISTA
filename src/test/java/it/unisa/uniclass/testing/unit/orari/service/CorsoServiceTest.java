@@ -6,14 +6,11 @@ import it.unisa.uniclass.orari.service.dao.CorsoRemote;
 import jakarta.persistence.NoResultException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.MockedConstruction;
 import org.mockito.MockitoAnnotations;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,8 +18,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Test d'unità per la classe CorsoService.
- * Verifica i metodi di servizio per la gestione dei corsi.
+ * Test d'unità aggiornati per la classe CorsoService.
+ * Versione corretta per riflettere l'uso di injection EJB
+ * senza lookup JNDI nel costruttore.
  */
 @DisplayName("Test per la classe CorsoService")
 public class CorsoServiceTest {
@@ -34,12 +32,9 @@ public class CorsoServiceTest {
     private Corso corso;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         MockitoAnnotations.openMocks(this);
-
-        // Usa il costruttore con iniezione diretta per i test
         corsoService = new CorsoService(corsoDao);
-
         corso = new Corso("Programmazione I");
     }
 
@@ -57,47 +52,10 @@ public class CorsoServiceTest {
         }
 
         @Test
-        @DisplayName("Costruttore JNDI fallisce quando InitialContext non è disponibile")
-        void testCostruttoreJndiFallisce() {
-            assertThrows(RuntimeException.class, () -> {
-                new CorsoService();
-            });
-        }
-
-        @Test
-        @DisplayName("Costruttore JNDI funziona con InitialContext mockato")
-        void testCostruttoreJndiConMock() throws Exception {
-            try (MockedConstruction<InitialContext> mockedContext = mockConstruction(InitialContext.class,
-                    (mock, context) -> {
-                        when(mock.lookup("java:global/UniClass-Dependability/CorsoDAO"))
-                                .thenReturn(corsoDao);
-                    })) {
-
-                CorsoService service = new CorsoService();
-
-                assertNotNull(service);
-
-                InitialContext mockCtx = mockedContext.constructed().get(0);
-                verify(mockCtx, times(1)).lookup("java:global/UniClass-Dependability/CorsoDAO");
-            }
-        }
-
-        @Test
-        @DisplayName("Costruttore JNDI lancia RuntimeException quando lookup fallisce")
-        void testCostruttoreJndiLookupFallisce() throws Exception {
-            try (MockedConstruction<InitialContext> mockedContext = mockConstruction(InitialContext.class,
-                    (mock, context) -> {
-                        when(mock.lookup(anyString()))
-                                .thenThrow(new NamingException("DAO non trovato"));
-                    })) {
-
-                RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-                    new CorsoService();
-                });
-
-                assertTrue(exception.getMessage().contains("Errore durante il lookup di CorsoDAO"));
-                assertInstanceOf(NamingException.class, exception.getCause());
-            }
+        @DisplayName("Costruttore senza parametri crea comunque l'istanza")
+        void testCostruttoreVuoto() {
+            CorsoService service = new CorsoService();
+            assertNotNull(service);
         }
     }
 
@@ -110,8 +68,7 @@ public class CorsoServiceTest {
         void testTrovaCorsoSuccesso() {
             long id = 1L;
 
-            when(corsoDao.trovaCorso(id))
-                    .thenReturn(corso);
+            when(corsoDao.trovaCorso(id)).thenReturn(corso);
 
             Corso result = corsoService.trovaCorso(id);
 
@@ -125,8 +82,7 @@ public class CorsoServiceTest {
         void testTrovaCorsoNonTrovato() {
             long id = 999L;
 
-            when(corsoDao.trovaCorso(id))
-                    .thenThrow(new NoResultException("Corso non trovato"));
+            when(corsoDao.trovaCorso(id)).thenThrow(new NoResultException("Corso non trovato"));
 
             Corso result = corsoService.trovaCorso(id);
 
@@ -140,8 +96,7 @@ public class CorsoServiceTest {
             for (long id = 1; id <= 3; id++) {
                 Corso corsoTest = new Corso("Corso " + id);
 
-                when(corsoDao.trovaCorso(id))
-                        .thenReturn(corsoTest);
+                when(corsoDao.trovaCorso(id)).thenReturn(corsoTest);
 
                 Corso result = corsoService.trovaCorso(id);
 
@@ -163,8 +118,7 @@ public class CorsoServiceTest {
             corsi.add(corso);
             corsi.add(new Corso("Algoritmi"));
 
-            when(corsoDao.trovaCorsiCorsoLaurea(nomeCorsoLaurea))
-                    .thenReturn(corsi);
+            when(corsoDao.trovaCorsiCorsoLaurea(nomeCorsoLaurea)).thenReturn(corsi);
 
             List<Corso> result = corsoService.trovaCorsiCorsoLaurea(nomeCorsoLaurea);
 
@@ -178,8 +132,7 @@ public class CorsoServiceTest {
         void testTrovaCorsiCorsoLaureaVuoto() {
             String nomeCorsoLaurea = "Corso Inesistente";
 
-            when(corsoDao.trovaCorsiCorsoLaurea(nomeCorsoLaurea))
-                    .thenReturn(new ArrayList<>());
+            when(corsoDao.trovaCorsiCorsoLaurea(nomeCorsoLaurea)).thenReturn(new ArrayList<>());
 
             List<Corso> result = corsoService.trovaCorsiCorsoLaurea(nomeCorsoLaurea);
 
@@ -197,8 +150,7 @@ public class CorsoServiceTest {
                 corsi.add(new Corso("Corso 1 " + nomeCorsoLaurea));
                 corsi.add(new Corso("Corso 2 " + nomeCorsoLaurea));
 
-                when(corsoDao.trovaCorsiCorsoLaurea(nomeCorsoLaurea))
-                        .thenReturn(corsi);
+                when(corsoDao.trovaCorsiCorsoLaurea(nomeCorsoLaurea)).thenReturn(corsi);
 
                 List<Corso> result = corsoService.trovaCorsiCorsoLaurea(nomeCorsoLaurea);
 
@@ -219,8 +171,7 @@ public class CorsoServiceTest {
             corsi.add(new Corso("Algoritmi"));
             corsi.add(new Corso("Basi di Dati"));
 
-            when(corsoDao.trovaTutti())
-                    .thenReturn(corsi);
+            when(corsoDao.trovaTutti()).thenReturn(corsi);
 
             List<Corso> result = corsoService.trovaTutti();
 
@@ -232,8 +183,7 @@ public class CorsoServiceTest {
         @Test
         @DisplayName("trovaTutti restituisce lista vuota")
         void testTrovaTuttiVuoto() {
-            when(corsoDao.trovaTutti())
-                    .thenReturn(new ArrayList<>());
+            when(corsoDao.trovaTutti()).thenReturn(new ArrayList<>());
 
             List<Corso> result = corsoService.trovaTutti();
 
@@ -249,8 +199,7 @@ public class CorsoServiceTest {
                 corsi.add(new Corso("Corso " + i));
             }
 
-            when(corsoDao.trovaTutti())
-                    .thenReturn(corsi);
+            when(corsoDao.trovaTutti()).thenReturn(corsi);
 
             List<Corso> result = corsoService.trovaTutti();
 
@@ -266,7 +215,6 @@ public class CorsoServiceTest {
         @DisplayName("aggiungiCorso aggiunge correttamente un corso")
         void testAggiungiCorsoSuccesso() {
             corsoService.aggiungiCorso(corso);
-
             verify(corsoDao, times(1)).aggiungiCorso(corso);
         }
 
@@ -301,7 +249,6 @@ public class CorsoServiceTest {
         @DisplayName("rimuoviCorso rimuove correttamente un corso")
         void testRimuoviCorsoSuccesso() {
             corsoService.rimuoviCorso(corso);
-
             verify(corsoDao, times(1)).rimuoviCorso(corso);
         }
 
@@ -327,8 +274,7 @@ public class CorsoServiceTest {
         void testTrovaCorsoEccezione() {
             long id = -1;
 
-            when(corsoDao.trovaCorso(id))
-                    .thenThrow(new NoResultException("Not found"));
+            when(corsoDao.trovaCorso(id)).thenThrow(new NoResultException("Not found"));
 
             Corso result = corsoService.trovaCorso(id);
 
@@ -341,8 +287,7 @@ public class CorsoServiceTest {
         void testTrovaCorsiCorsoLaureaParametriVuoti() {
             String nomeCorsoLaurea = "";
 
-            when(corsoDao.trovaCorsiCorsoLaurea(nomeCorsoLaurea))
-                    .thenReturn(new ArrayList<>());
+            when(corsoDao.trovaCorsiCorsoLaurea(nomeCorsoLaurea)).thenReturn(new ArrayList<>());
 
             List<Corso> result = corsoService.trovaCorsiCorsoLaurea(nomeCorsoLaurea);
 
@@ -353,8 +298,7 @@ public class CorsoServiceTest {
         @Test
         @DisplayName("trovaTutti gestisce eccezioni gracefully")
         void testTrovaTuttiEccezione() {
-            when(corsoDao.trovaTutti())
-                    .thenReturn(new ArrayList<>());
+            when(corsoDao.trovaTutti()).thenReturn(new ArrayList<>());
 
             List<Corso> result = corsoService.trovaTutti();
 
@@ -370,17 +314,13 @@ public class CorsoServiceTest {
         @Test
         @DisplayName("Sequenza completa con operazioni multiple")
         void testSequenzaCompleta() {
-            // Aggiungi
             corsoService.aggiungiCorso(corso);
             verify(corsoDao, times(1)).aggiungiCorso(corso);
 
-            // Trova per ID
-            when(corsoDao.trovaCorso(1L))
-                    .thenReturn(corso);
+            when(corsoDao.trovaCorso(1L)).thenReturn(corso);
             Corso result = corsoService.trovaCorso(1L);
             assertNotNull(result);
 
-            // Rimuovi
             corsoService.rimuoviCorso(corso);
             verify(corsoDao, atLeastOnce()).rimuoviCorso(corso);
         }
@@ -392,8 +332,7 @@ public class CorsoServiceTest {
             List<Corso> corsi = new ArrayList<>();
             corsi.add(corso);
 
-            when(corsoDao.trovaCorsiCorsoLaurea(nomeCorsoLaurea))
-                    .thenReturn(corsi);
+            when(corsoDao.trovaCorsiCorsoLaurea(nomeCorsoLaurea)).thenReturn(corsi);
 
             List<Corso> result = corsoService.trovaCorsiCorsoLaurea(nomeCorsoLaurea);
             assertEquals(1, result.size());
@@ -411,8 +350,7 @@ public class CorsoServiceTest {
             corsi.add(corso);
             corsi.add(new Corso("Algoritmi"));
 
-            when(corsoDao.trovaTutti())
-                    .thenReturn(corsi);
+            when(corsoDao.trovaTutti()).thenReturn(corsi);
 
             List<Corso> result = corsoService.trovaTutti();
             assertEquals(2, result.size());
@@ -423,4 +361,3 @@ public class CorsoServiceTest {
         }
     }
 }
-

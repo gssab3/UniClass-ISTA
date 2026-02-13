@@ -28,7 +28,7 @@ public class cercaOrario extends HttpServlet {
     @EJB private LezioneService lezioneService;
 
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+    public void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
             String corsoNome = request.getParameter("corsoLaurea");
             String restoNome = request.getParameter("resto");
@@ -103,7 +103,7 @@ public class cercaOrario extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+    public void doGet(HttpServletRequest request, HttpServletResponse response) {
         doPost(request, response);
     }
 }
