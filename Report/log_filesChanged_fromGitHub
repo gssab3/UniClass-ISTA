@@ -1,0 +1,184 @@
+ .idea/inspectionProfiles/Project_Default.xml
++2 −0  .idea/webContexts.xml
+BIN  DeliverablesISTA/ImpactAnalysis_UniClass_v1.0.pdf
+BIN  DeliverablesISTA/TCS_v1_UniClass.pdf
+BIN  DeliverablesISTA/TestPlan_UniClass.pdf
++2 −2  Dockerfile
+BIN  {Deliverables → OriginalDeliverables}/ObjectDesignDocument_UniClass.pdf
+BIN  {Deliverables → OriginalDeliverables}/PresentazioneUniClass.pdf
+BIN  {Deliverables → OriginalDeliverables}/ProblemStatement_UniClass.pdf
+BIN  {Deliverables → OriginalDeliverables}/RequirementAnalysisDocument_UniClass.pdf
+BIN  {Deliverables → OriginalDeliverables}/SystemDesignDocument_UniClass.pdf
+BIN  {Deliverables → OriginalDeliverables}/TestExcecutionReport_UniClass.pdf
+BIN  {Deliverables → OriginalDeliverables}/TestPlanAndSpecificationCases_UniClass.pdf
++34 −0  Report/baseline_dependency.csv
++1,374 −0  Report/baseline_dependency.xml
++1,182 −0  Report/dependency.xml
++5 −0  baseline_benchmark/jmeter/summary_auth.csv
++4 −0  baseline_benchmark/jmeter/summary_load.csv
++5 −0  baseline_benchmark/jmeter/summary_spike.csv
++5 −0  baseline_benchmark/jmeter/summary_stress.csv
++33,541 −0  baseline_benchmark/jmh/jmh-result-anno-didattico.json
++33,879 −0  baseline_benchmark/jmh/jmh-result-aula.json
++6,037 −0  baseline_benchmark/jmh/jmh-result-coordinatore.json
++23,742 −0  baseline_benchmark/jmh/jmh-result-corso-laurea.json
++8,267 −0  baseline_benchmark/jmh/jmh-result-docente.json
++54,038 −0  baseline_benchmark/jmh/jmh-result-lezione.json
++56,330 −0  baseline_benchmark/jmh/jmh-result-messaggio.json
++3,740 −0  baseline_benchmark/jmh/jmh-result-personale-ta.json
++39,230 −0  baseline_benchmark/jmh/jmh-result-resto.json
++97,338 −0  baseline_benchmark/jmh/jmh-result-topic.json
++5,655 −0  baseline_benchmark/jmh/jmh-result-utente.json
++33 −39  src/main/java/it/unisa/uniclass/common/IndexServlet.java
++155 −638  src/main/java/it/unisa/uniclass/common/config/database/DatabasePopulator.java
++43 −45  src/main/java/it/unisa/uniclass/conversazioni/controller/ConversazioniServlet.java
++40 −68  src/main/java/it/unisa/uniclass/conversazioni/controller/chatServlet.java
++41 −84  src/main/java/it/unisa/uniclass/conversazioni/controller/inviaMessaggioChatServlet.java
++30 −79  src/main/java/it/unisa/uniclass/conversazioni/controller/invioMessaggioServlet.java
++33 −79  src/main/java/it/unisa/uniclass/conversazioni/model/Messaggio.java
++40 −91  src/main/java/it/unisa/uniclass/conversazioni/service/MessaggioService.java
++6 −55  src/main/java/it/unisa/uniclass/conversazioni/service/TopicService.java
++30 −0  src/main/java/it/unisa/uniclass/orari/controller/AulaServlet.java
++35 −29  src/main/java/it/unisa/uniclass/orari/controller/EdificioServlet.java
++61 −22  src/main/java/it/unisa/uniclass/orari/controller/cercaOrario.java
++44 −26  src/main/java/it/unisa/uniclass/orari/controller/getAnno.java
++29 −30  src/main/java/it/unisa/uniclass/orari/controller/getResto.java
++28 −140  src/main/java/it/unisa/uniclass/orari/model/Corso.java
++15 −17  src/main/java/it/unisa/uniclass/orari/model/CorsoLaurea.java
++26 −233  src/main/java/it/unisa/uniclass/orari/model/Lezione.java
++14 −89  src/main/java/it/unisa/uniclass/orari/model/Resto.java
++4 −68  src/main/java/it/unisa/uniclass/orari/service/AnnoDidatticoService.java
++6 −67  src/main/java/it/unisa/uniclass/orari/service/AulaService.java
++4 −56  src/main/java/it/unisa/uniclass/orari/service/CorsoLaureaService.java
++4 −52  src/main/java/it/unisa/uniclass/orari/service/CorsoService.java
++6 −96  src/main/java/it/unisa/uniclass/orari/service/LezioneService.java
++3 −69  src/main/java/it/unisa/uniclass/orari/service/RestoService.java
++48 −123  src/main/java/it/unisa/uniclass/orari/service/dao/LezioneDAO.java
++44 −65  src/main/java/it/unisa/uniclass/utenti/controller/AttivaUtentiServlet.java
++21 −19  src/main/java/it/unisa/uniclass/utenti/controller/GetAttivati.java
++15 −15  src/main/java/it/unisa/uniclass/utenti/controller/GetEmailServlet.java
++26 −18  src/main/java/it/unisa/uniclass/utenti/controller/GetNonAttivati.java
++33 −66  src/main/java/it/unisa/uniclass/utenti/controller/LoginServlet.java
++25 −11  src/main/java/it/unisa/uniclass/utenti/controller/LogoutServlet.java
++115 −231  src/main/java/it/unisa/uniclass/utenti/model/Accademico.java
++0 −73  src/main/java/it/unisa/uniclass/utenti/model/Coordinatore.java
++0 −218  src/main/java/it/unisa/uniclass/utenti/model/Docente.java
++0 −136  src/main/java/it/unisa/uniclass/utenti/model/PersonaleTA.java
++19 −0  src/main/java/it/unisa/uniclass/utenti/model/Ruolo.java
++0 −135  src/main/java/it/unisa/uniclass/utenti/model/Studente.java
++3 −17  src/main/java/it/unisa/uniclass/utenti/model/Tipo.java
++73 −221  src/main/java/it/unisa/uniclass/utenti/model/Utente.java
++0 −150  src/main/java/it/unisa/uniclass/utenti/service/AccademicoService.java
++0 −127  src/main/java/it/unisa/uniclass/utenti/service/CoordinatoreService.java
++0 −139  src/main/java/it/unisa/uniclass/utenti/service/DocenteService.java
++0 −113  src/main/java/it/unisa/uniclass/utenti/service/PersonaleTAService.java
++0 −128  src/main/java/it/unisa/uniclass/utenti/service/StudenteService.java
++63 −0  src/main/java/it/unisa/uniclass/utenti/service/UserDirectory.java
++94 −0  src/main/java/it/unisa/uniclass/utenti/service/UserDirectoryImpl.java
++77 −71  src/main/java/it/unisa/uniclass/utenti/service/UtenteService.java
++27 −38  src/main/java/it/unisa/uniclass/utenti/service/dao/AccademicoDAO.java
++14 −9  src/main/java/it/unisa/uniclass/utenti/service/dao/AccademicoRemote.java
++0 −88  src/main/java/it/unisa/uniclass/utenti/service/dao/CoordinatoreDAO.java
++0 −16  src/main/java/it/unisa/uniclass/utenti/service/dao/CoordinatoreRemote.java
++0 −88  src/main/java/it/unisa/uniclass/utenti/service/dao/DocenteDAO.java
++0 −16  src/main/java/it/unisa/uniclass/utenti/service/dao/DocenteRemote.java
++0 −98  src/main/java/it/unisa/uniclass/utenti/service/dao/PersonaleTADAO.java
++0 −16  src/main/java/it/unisa/uniclass/utenti/service/dao/PersonaleTARemote.java
++0 −89  src/main/java/it/unisa/uniclass/utenti/service/dao/StudenteDAO.java
++0 −17  src/main/java/it/unisa/uniclass/utenti/service/dao/StudenteRemote.java
++86 −0  src/main/java/it/unisa/uniclass/utenti/service/dao/UtenteDAO.java
++30 −0  src/main/java/it/unisa/uniclass/utenti/service/dao/UtenteRemote.java
++8 −40  src/main/resources/META-INF/persistence.xml
++109 −139  src/main/webapp/Account.jsp
++2 −5  src/main/webapp/ChatBot.jsp
++17 −16  src/main/webapp/Conversazioni.jsp
++21 −35  src/main/webapp/Login.jsp
++73 −53  src/main/webapp/OrarioSingolo.jsp
++1 −1  src/main/webapp/PersonaleTA/AttivaUtenti.jsp
++25 −0  src/main/webapp/WEB-INF/resources.xml
++2 −5  src/main/webapp/aboutus.jsp
++3 −11  src/main/webapp/aula.jsp
++60 −96  src/main/webapp/chat.jsp
++68 −62  src/main/webapp/edificio.jsp
++53 −54  src/main/webapp/header.jsp
++24 −19  src/main/webapp/index.jsp
++2 −5  src/main/webapp/infoapp.jsp
++2 −5  src/main/webapp/mappa.jsp
++15 −17  src/main/webapp/scripts/formOrario.js
++11 −0  src/main/webapp/styles/barraNavigazioneStyle.css
++5 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmeter/results/summary_auth.csv
++4 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmeter/results/summary_load.csv
++5 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmeter/results/summary_spike.csv
++5 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmeter/results/summary_stress.csv
++240 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmeter/uniclass-auth-spike-test.jmx
++206 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmeter/uniclass-load-test.jmx
++201 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmeter/uniclass-spike-test.jmx
++213 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmeter/uniclass-stress-test.jmx
++1 −1  ...st/java/it/unisa/uniclass/testing/benchmark/{ → jmh}/conversazioni/benchmarkMessaggioService.java
++1 −1  src/test/java/it/unisa/uniclass/testing/benchmark/{ → jmh}/conversazioni/benchmarkTopicService.java
++1 −1  src/test/java/it/unisa/uniclass/testing/benchmark/{ → jmh}/orari/BenchmarkAnnoDidatticoService.java
++1 −1  src/test/java/it/unisa/uniclass/testing/benchmark/{ → jmh}/orari/BenchmarkAulaService.java
++1 −1  src/test/java/it/unisa/uniclass/testing/benchmark/{ → jmh}/orari/BenchmarkCorsoLaureaService.java
++1 −1  src/test/java/it/unisa/uniclass/testing/benchmark/{ → jmh}/orari/BenchmarkCorsoService.java
++1 −1  src/test/java/it/unisa/uniclass/testing/benchmark/{ → jmh}/orari/BenchmarkLezioneService.java
++1 −1  src/test/java/it/unisa/uniclass/testing/benchmark/{ → jmh}/orari/BenchmarkRestoService.java
++109 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmh/utenti/CoordinatoreServiceBenchmark.java
++104 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmh/utenti/DocenteServiceBenchmark.java
++114 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmh/utenti/PersonaleTAServiceBenchmark.java
++148 −0  src/test/java/it/unisa/uniclass/testing/benchmark/jmh/utenti/UtenteServiceBenchmark.java
++0 −49  src/test/java/it/unisa/uniclass/testing/benchmark/utenti/JMH/CoordinatoreServiceBenchmark.java
++0 −55  src/test/java/it/unisa/uniclass/testing/benchmark/utenti/JMH/DocenteServiceBenchmark.java
++0 −46  src/test/java/it/unisa/uniclass/testing/benchmark/utenti/JMH/PersonaleTAServiceBenchmark.java
++0 −75  src/test/java/it/unisa/uniclass/testing/benchmark/utenti/JMH/UtenteServiceBenchmark.java
++0 −39  src/test/java/it/unisa/uniclass/testing/benchmark/utenti/mocks/MockAccademicoDAO.java
++0 −51  src/test/java/it/unisa/uniclass/testing/benchmark/utenti/mocks/MockCoordinatoreDAO.java
++0 −59  src/test/java/it/unisa/uniclass/testing/benchmark/utenti/mocks/MockDocenteDAO.java
++0 −54  src/test/java/it/unisa/uniclass/testing/benchmark/utenti/mocks/MockPersonaleTADAO.java
++0 −24  src/test/java/it/unisa/uniclass/testing/dao/TestAccademicoService.java
++0 −20  src/test/java/it/unisa/uniclass/testing/dao/TestPersonaleTAService.java
++65 −141  src/test/java/it/unisa/uniclass/testing/unit/common/Security/IndexServletTest.java
++92 −316  src/test/java/it/unisa/uniclass/testing/unit/conversazioni/controller/ConversazioniServletTest.java
++96 −263  src/test/java/it/unisa/uniclass/testing/unit/conversazioni/controller/chatServeltTest.java
++78 −388  ...t/java/it/unisa/uniclass/testing/unit/conversazioni/controller/inviaMessaggioChatServeltTest.java
++86 −367  src/test/java/it/unisa/uniclass/testing/unit/conversazioni/controller/invioMessaggioServletTest.java
++61 −446  src/test/java/it/unisa/uniclass/testing/unit/conversazioni/model/MessaggioTest.java
++126 −502  src/test/java/it/unisa/uniclass/testing/unit/conversazioni/service/MessaggioServiceTest.java
++26 −415  src/test/java/it/unisa/uniclass/testing/unit/conversazioni/service/TopicServiceTest.java
++93 −495  src/test/java/it/unisa/uniclass/testing/unit/conversazioni/service/dao/MessaggioDAOTest.java
++89 −228  src/test/java/it/unisa/uniclass/testing/unit/orari/controller/EdificioServletTest.java
++120 −409  src/test/java/it/unisa/uniclass/testing/unit/orari/controller/cercaOrarioTest.java
++134 −339  src/test/java/it/unisa/uniclass/testing/unit/orari/controller/getAnnoTest.java
++119 −368  src/test/java/it/unisa/uniclass/testing/unit/orari/controller/getRestoTest.java
++65 −694  src/test/java/it/unisa/uniclass/testing/unit/orari/model/CorsoLaureaTest.java
++51 −641  src/test/java/it/unisa/uniclass/testing/unit/orari/model/CorsoTest.java
++75 −727  src/test/java/it/unisa/uniclass/testing/unit/orari/model/LezioneTest.java
++47 −360  src/test/java/it/unisa/uniclass/testing/unit/orari/model/RestoTest.java
++53 −381  src/test/java/it/unisa/uniclass/testing/unit/orari/service/AnnoDidatticoServiceTest.java
++32 −101  src/test/java/it/unisa/uniclass/testing/unit/orari/service/AulaServiceTest.java
++82 −313  src/test/java/it/unisa/uniclass/testing/unit/orari/service/CorsoLaureaServiceTest.java
++24 −87  src/test/java/it/unisa/uniclass/testing/unit/orari/service/CorsoServiceTest.java
++42 −534  src/test/java/it/unisa/uniclass/testing/unit/orari/service/LezioneServiceTest.java
++48 −491  src/test/java/it/unisa/uniclass/testing/unit/orari/service/RestoServiceTest.java
++142 −69  src/test/java/it/unisa/uniclass/testing/unit/utenti/controller/AttivaUtentiServletTest.java
++111 −54  src/test/java/it/unisa/uniclass/testing/unit/utenti/controller/GetAttivatiTest.java
++86 −39  src/test/java/it/unisa/uniclass/testing/unit/utenti/controller/GetEmailServletTest.java
++113 −56  src/test/java/it/unisa/uniclass/testing/unit/utenti/controller/GetNonAttivatiTest.java
++118 −157  src/test/java/it/unisa/uniclass/testing/unit/utenti/controller/LoginServletTest.java
++76 −25  src/test/java/it/unisa/uniclass/testing/unit/utenti/model/AccademicoTest.java
++0 −72  src/test/java/it/unisa/uniclass/testing/unit/utenti/model/CoordinatoreTest.java
++0 −79  src/test/java/it/unisa/uniclass/testing/unit/utenti/model/DocenteTest.java
++0 −44  src/test/java/it/unisa/uniclass/testing/unit/utenti/model/PersonaleTATest.java
++0 −75  src/test/java/it/unisa/uniclass/testing/unit/utenti/model/StudenteTest.java
++0 −192  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/AccademicoServiceTest.java
++0 −169  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/CoordinatoreServiceTest.java
++0 −176  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/DocenteServiceTest.java
++0 −158  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/PersonaleTAServiceTest.java
++0 −203  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/StudenteServiceTest.java
++169 −0  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/UserDirectoryTest.java
++93 −127  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/UtenteServiceTest.java
++71 −82  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/dao/AccademicoDAOTest.java
++0 −91  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/dao/CoordinatoreDAOTest.java
++0 −91  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/dao/DocenteDAOTest.java
++0 −112  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/dao/PersonaleTADAOTest.java
++0 −95  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/dao/StudenteDAOTest.java
++147 −0  src/test/java/it/unisa/uniclass/testing/unit/utenti/service/dao/UtenteDAOTest.java
