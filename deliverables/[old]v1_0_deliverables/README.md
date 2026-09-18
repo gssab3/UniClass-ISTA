@@ -1,0 +1,1 @@
+La cartella seguente rappresenta la prima versione del sistema, definita durante il corso di Ingegneria del Software. I deliverables sono relativi al progetto d'esame.

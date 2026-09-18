@@ -3,11 +3,13 @@ FROM eclipse-temurin:21-jdk
 
 
 # Non essendoci delle build predefinite con TomEE 10, ne prendiamo una noi online
-RUN curl -L https://downloads.apache.org/tomee/tomee-10.1.3/apache-tomee-10.1.3-microprofile.tar.gz -o /tmp/tomee.tar.gz \
-    && tar -xzf /tmp/tomee.tar.gz -C /usr/local/ \
-    && mv /usr/local/apache-tomee-microprofile-10.1.3 /usr/local/tomee \
-    && rm /tmp/tomee.tar.gz
-
+RUN mkdir -p /usr/local/tomee \
+    && curl -fL https://downloads.apache.org/tomee/tomee-11.0.0-M1/apache-tomee-11.0.0-M1-microprofile.tar.gz \
+        -o /tmp/tomee.tar.gz \
+    && tar -xzf /tmp/tomee.tar.gz \
+        --strip-components=1 \
+        -C /usr/local/tomee \
+    && rm -f /tmp/tomee.tar.gz
 
 
 # Si copia il war nel target (grazie a mvn clean package) all'interno del container della webapp

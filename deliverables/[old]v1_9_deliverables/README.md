@@ -1,0 +1,1 @@
+La cartella qui presente definisce l'insieme di tutti i deliverables presenti nella manutenzione correttiva, adattiva e migliorativa durante i corsi di Software Dependability e Ingegneria del Software Tecniche Avanzate

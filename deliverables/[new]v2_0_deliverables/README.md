@@ -1,0 +1,1 @@
+Qui sono presenti tutti i deliverables della versione 2.0 del sistema UniClass per l'esame di Penetration Testing and Ethical Hacking, ovvero pre e post la manutenzione della Web Application corrente al fine di migliorarne l'aspetto di sicurezza, oscurato in precedenza

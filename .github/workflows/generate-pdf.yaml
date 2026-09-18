@@ -4,8 +4,8 @@ on:
   workflow_dispatch:   
   push:
     paths:
-      - 'Report/md-thesis/**.md'
-      - 'Report/md-thesis/**.yaml'
+      - '../../deliverables/[old]v1_9_deliverables/Report/md-thesis/**.md'
+      - '../../deliverables/[old]v1_9_deliverables/Report/md-thesis/**.yaml'
 
 jobs:
   build-pdf:

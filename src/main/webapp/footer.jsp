@@ -9,11 +9,11 @@
             <img src="images/logois.png" >
         </div>
         <div class="copyright">
-            <p>&copy; 2025 UniClass. Tutti i diritti riservati.
+            <p>&copy; 2025-2027 UniClass. Tutti i diritti riservati.
                 <br>
                 <a href="Downloadable/privacy-policy.txt" download="privacy-policy.txt">Privacy Policy</a>
                 <br>
-                Developed by: Cetrulo G.Antonio, D'Avanzo Saverio, Gallo Sara, Sabetta Giuseppe</p>
+                Developed by: AC, SD, SG, GS, LC</p>
         </div>
     </div>
 </footer>
