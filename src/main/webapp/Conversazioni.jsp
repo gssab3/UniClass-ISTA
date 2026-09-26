@@ -140,6 +140,7 @@
 
 <div class="form-container">
   <form id="myForm" action="invioMessaggioServlet" method="post" class="chat-form">
+    <input type="hidden" name="csrfToken" value="<%= it.unisa.uniclass.common.security.CSRF.getToken(request.getSession(true)) %>">
     <label for="email" class="form-label">Seleziona un'email:</label>
     <select id="email" name="email" class="form-select" data-self="<%= escapeHTML(accademicoSelf.getEmail()) %>">
       <% if(accademicoSelf.getRuolo().equals(Ruolo.DOCENTE) || accademicoSelf.getRuolo().equals(Ruolo.COORDINATORE)) { %>

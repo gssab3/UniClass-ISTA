@@ -100,6 +100,7 @@
 
         <% if (interlocutore != null) { %>
         <input type="hidden" id="emailInvio" name="emailInvio" value="<%= escapeHTML(interlocutore.getEmail()) %>">
+        <input type="hidden" id="csrfToken" name="csrfToken" value="<%= it.unisa.uniclass.common.security.CSRF.getToken(request.getSession(true)) %>">
         <% } %>
 
         <button type="button" class="send-button" onclick="sendMessage()">Invia</button>
@@ -110,6 +111,7 @@
     function sendMessage() {
         var testo = document.getElementById('testo').value;
         var emailInvioElem = document.getElementById('emailInvio');
+        var csrfElem = document.getElementById('csrfToken');
 
         if (!emailInvioElem) {
             alert("Nessun destinatario selezionato");
@@ -117,9 +119,13 @@
         }
 
         var email = emailInvioElem.value;
+        var csrf = csrfElem ? csrfElem.value : "";
         if (testo.trim() !== "") {
-            window.location.href = 'inviaMessaggioChatServlet?testo=' +
-                encodeURIComponent(testo) + '&emailInvio=' + encodeURIComponent(email);
+            fetch('inviaMessaggioChatServlet', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'testo=' + encodeURIComponent(testo) + '&emailInvio=' + encodeURIComponent(email) + '&csrfToken=' + encodeURIComponent(csrf)
+            }).then(function() { location.reload(); });
         }
     }
 </script>

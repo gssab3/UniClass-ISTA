@@ -1,6 +1,7 @@
 package it.unisa.uniclass.conversazioni.controller;
 
 import it.unisa.uniclass.common.Utils;
+import it.unisa.uniclass.common.security.CSRF;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
@@ -30,6 +31,17 @@ public class invioMessaggioServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) {
         try {
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        } catch (IOException ignored) {}
+    }
+
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            if (!CSRF.isValid(request)) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
             HttpSession session = request.getSession();
 
             String emailSession = (String) session.getAttribute("utenteEmail");
@@ -76,10 +88,5 @@ public class invioMessaggioServlet extends HttpServlet {
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             } catch (IOException ignored) {}
         }
-    }
-
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doGet(request, response);
     }
 }

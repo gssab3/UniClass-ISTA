@@ -64,7 +64,10 @@
         </div>
 
         <% if (u != null) { %>
-        <a href="<%=request.getContextPath()%>/LogoutServlet" class="logout-button">Esci</a>
+        <form action="<%=request.getContextPath()%>/LogoutServlet" method="post" style="display:inline">
+            <input type="hidden" name="csrfToken" value="<%= it.unisa.uniclass.common.security.CSRF.getToken(request.getSession(true)) %>">
+            <button type="submit" class="logout-button">Esci</button>
+        </form>
         <% } %>
 
     </div>

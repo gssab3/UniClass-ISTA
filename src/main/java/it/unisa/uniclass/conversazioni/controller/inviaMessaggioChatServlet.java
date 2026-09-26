@@ -1,6 +1,7 @@
 package it.unisa.uniclass.conversazioni.controller;
 
 import it.unisa.uniclass.common.Utils;
+import it.unisa.uniclass.common.security.CSRF;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
@@ -30,6 +31,18 @@ public class inviaMessaggioChatServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) {
         try {
+            response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        } catch (IOException ignored) {}
+    }
+
+
+    @Override
+    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        try {
+            if (!CSRF.isValid(request)) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
             HttpSession session = request.getSession();
 
             String emailSession = (String) session.getAttribute("utenteEmail");
@@ -60,7 +73,6 @@ public class inviaMessaggioChatServlet extends HttpServlet {
 
                 List<Messaggio> messaggi = messaggioService.trovaTutti();
 
-                // 🔥 FIX: inizializzazione relazioni LAZY
                 for (Messaggio m : messaggi) {
                     if (m.getAutore() != null) m.getAutore().getNome();
                     if (m.getDestinatario() != null) m.getDestinatario().getNome();
@@ -87,11 +99,5 @@ public class inviaMessaggioChatServlet extends HttpServlet {
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             } catch (IOException ignored) {}
         }
-    }
-
-
-    @Override
-    public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        doGet(request, response);
     }
 }

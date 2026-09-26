@@ -92,6 +92,7 @@
         <br>
 
         <form action="${pageContext.request.contextPath}/AttivaUtentiServlet?param=add" method="POST" onsubmit="return validateActivation()">
+            <input type="hidden" name="csrfToken" value="<%= it.unisa.uniclass.common.security.CSRF.getToken(request.getSession(true)) %>">
             <label for="matricola">Matricola:</label>
             <input type="text" id="matricola" name="matricola" required><br><br>
             <label for="email">Email:</label>
@@ -113,6 +114,7 @@
         <h2>Disattivazione Utente</h2>
         <br>
         <form action="${pageContext.request.contextPath}/AttivaUtentiServlet?param=remove" method="POST">
+            <input type="hidden" name="csrfToken" value="<%= it.unisa.uniclass.common.security.CSRF.getToken(request.getSession(true)) %>">
 
             <label for="email-remove">Email:</label>
             <select id="email-remove" name="email-remove" required>

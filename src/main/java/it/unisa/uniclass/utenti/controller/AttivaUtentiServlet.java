@@ -2,6 +2,7 @@ package it.unisa.uniclass.utenti.controller;
 
 import it.unisa.uniclass.common.Utils;
 import it.unisa.uniclass.common.security.CredentialSecurity;
+import it.unisa.uniclass.common.security.CSRF;
 import it.unisa.uniclass.common.security.PasswordGenerator;
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Utente;
@@ -23,6 +24,10 @@ public class AttivaUtentiServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
         try {
+            if (!CSRF.isValid(req)) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
             String param = req.getParameter("param");
 
             if ("add".equals(param)) {
@@ -89,6 +94,8 @@ public class AttivaUtentiServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
-        doPost(req, resp);
+        try {
+            resp.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+        } catch (IOException ignored) {}
     }
 }

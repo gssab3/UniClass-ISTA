@@ -26,6 +26,7 @@
         <div class="contenutologin">
 
             <form action="Login" class="loginform" method="POST" onsubmit="return validateForm()">
+                <input type="hidden" name="csrfToken" value="<%= it.unisa.uniclass.common.security.CSRF.getToken(request.getSession(true)) %>">
                 <div id="error" class="error"></div>
 
                 <%

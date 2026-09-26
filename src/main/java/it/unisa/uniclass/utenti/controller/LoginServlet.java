@@ -2,6 +2,7 @@ package it.unisa.uniclass.utenti.controller;
 
 import it.unisa.uniclass.common.Utils;
 import it.unisa.uniclass.common.exceptions.AuthenticationException;
+import it.unisa.uniclass.common.security.CSRF;
 import it.unisa.uniclass.common.security.CredentialSecurity;
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Utente;
@@ -24,7 +25,9 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     public void doGet(HttpServletRequest request, HttpServletResponse response) {
-        doPost(request, response);
+        try {
+            response.sendRedirect(request.getContextPath() + "/Login.jsp");
+        } catch (IOException ignored) {}
     }
 
     @Override
@@ -33,6 +36,11 @@ public class LoginServlet extends HttpServlet {
             String email = request.getParameter("email");
             String passwordRaw = request.getParameter("password");
             String password = passwordRaw; // niente hash
+
+            if (!CSRF.isValid(request)) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
 
             if (!Utils.isEmail(email) || passwordRaw == null || passwordRaw.length() < 8 || passwordRaw.length() > 20) {
                 response.sendRedirect(request.getContextPath() + "/Login.jsp?action=error");
