@@ -6,6 +6,7 @@
 <%@ page import="it.unisa.uniclass.conversazioni.model.Topic" %>
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.ArrayList" %>
+<%@ page import="static it.unisa.uniclass.common.Utils.escapeHTML" %>
 
 <%
     HttpSession sessione = request.getSession(false);
@@ -48,7 +49,7 @@
     <div class="chat-header">
         <h2>
             <% if (interlocutore != null) { %>
-            Chat con: <%= interlocutore.getNome() %> <%= interlocutore.getCognome() %>
+            Chat con: <%= escapeHTML(interlocutore.getNome()) %> <%= escapeHTML(interlocutore.getCognome()) %>
             <% } else { %>
             Seleziona un utente
             <% } %>
@@ -68,7 +69,7 @@
                     if (t != null && t.getNome() != null && !"VUOTO".equals(t.getNome())) {
         %>
         <div class="message red-text">
-            <span class="message-text">[<%= t.getNome() %>]</span>
+            <span class="message-text">[<%= escapeHTML(t.getNome()) %>]</span>
         </div>
         <%
             }
@@ -86,7 +87,7 @@
             String cssClass = isAutoreSelf ? "self" : "author";
         %>
         <div class="message <%= cssClass %>">
-            <span class="message-text"><%= messaggio.getBody() %></span>
+            <span class="message-text"><%= escapeHTML(messaggio.getBody()) %></span>
         </div>
         <%
                 }
@@ -98,7 +99,7 @@
         <input type="text" id="testo" name="testo" class="chat-input" placeholder="Scrivi un messaggio..." required>
 
         <% if (interlocutore != null) { %>
-        <input type="hidden" id="emailInvio" name="emailInvio" value="<%= interlocutore.getEmail() %>">
+        <input type="hidden" id="emailInvio" name="emailInvio" value="<%= escapeHTML(interlocutore.getEmail()) %>">
         <% } %>
 
         <button type="button" class="send-button" onclick="sendMessage()">Invia</button>

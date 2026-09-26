@@ -4,6 +4,7 @@
 <%@ page import="it.unisa.uniclass.orari.model.*" %>
 <%@ page import="java.time.LocalTime" %>
 <%@ page import="java.util.stream.Collectors" %>
+<%@ page import="static it.unisa.uniclass.common.Utils.escapeHTML" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 
 <%
@@ -70,9 +71,9 @@
 
 <br>
 <h1 style="text-align: center;">
-  ORARIO: <%= corsoLaurea != null ? corsoLaurea.getNome() : "N/D" %>
-  - <%= resto != null ? resto.getNome() : "N/D" %>
-  - <%= annoDidattico != null ? annoDidattico.getAnno() : "N/D" %>
+  ORARIO: <%= corsoLaurea != null ? escapeHTML(corsoLaurea.getNome()) : "N/D" %>
+  - <%= resto != null ? escapeHTML(resto.getNome()) : "N/D" %>
+  - <%= annoDidattico != null ? escapeHTML(annoDidattico.getAnno()) : "N/D" %>
 </h1>
 <br>
 
@@ -100,7 +101,7 @@
         if (giorno.toString().equals("DOMENICA")) continue;
     %>
     <tr>
-      <td class="highlight" style="font-weight: bold; background-color: #eee;"><%= giorno.toString() %></td>
+      <td class="highlight" style="font-weight: bold; background-color: #eee;"><%= escapeHTML(giorno.toString()) %></td>
       <%
         int currentSlot = 18; // 9:00 * 2 = 18
         int maxSlot = 36;     // 18:00 * 2 = 36
@@ -139,9 +140,9 @@
           }
       %>
       <td colspan="<%= duration %>" class="subject-base" style="text-align: center; vertical-align: middle;">
-        <strong><%= nomeCorso %></strong><br>
-        <small><%= docenti %></small><br>
-        <small>Aula: <%= aulaNome %></small>
+        <strong><%= escapeHTML(nomeCorso) %></strong><br>
+        <small><%= escapeHTML(docenti) %></small><br>
+        <small>Aula: <%= escapeHTML(aulaNome) %></small>
       </td>
       <%
             currentSlot += duration;

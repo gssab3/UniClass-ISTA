@@ -1,6 +1,7 @@
 <%@ page import="it.unisa.uniclass.utenti.model.Utente" %>
 <%@ page import="it.unisa.uniclass.utenti.model.Accademico" %>
 <%@ page import="it.unisa.uniclass.utenti.model.Ruolo" %>
+<%@ page import="static it.unisa.uniclass.common.Utils.escapeHTML" %>
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 
 <%
@@ -34,11 +35,11 @@
         <div class="user-details">
 
             <% if (u != null) { %>
-            <span class="user-name"><%= u.getNome() %> <%= u.getCognome() %></span>
+            <span class="user-name"><%= escapeHTML(u.getNome()) %> <%= escapeHTML(u.getCognome()) %></span>
 
             <span class="user-role">
                     <% if (isAccademico) { %>
-                        <%= acc.getRuolo().toString() %>
+                        <%= escapeHTML(acc.getRuolo().toString()) %>
                     <% } else { %>
                         Personale TA
                     <% } %>

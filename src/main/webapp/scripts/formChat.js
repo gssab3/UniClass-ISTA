@@ -8,16 +8,18 @@ function aggiornaEmail() {
             var response = JSON.parse(xhr.responseText);
             console.log(response);
 
-            var emailUtenteCorrente = "<%= accademicoSelf.getEmail() %>";
-
             // Selezione del campo email
             var emailSelect = document.getElementById("email");
+            var emailUtenteCorrente = emailSelect.dataset.self || "";
             emailSelect.innerHTML = '<option value="" disabled selected>Seleziona un\'email</option>';
 
             // Aggiunta delle email al dropdown
             response.forEach(function (email) {
                 if (email !== emailUtenteCorrente) {
-                    emailSelect.innerHTML += `<option value="${email}">${email}</option>`;
+                    const option = document.createElement("option")
+                    option.value = email
+                    option.textContent = email
+                    emailSelect.appendChild(option)
                 }
             });
         } else {

@@ -7,6 +7,7 @@
 <%@ page import="it.unisa.uniclass.conversazioni.model.Messaggio" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="it.unisa.uniclass.utenti.model.Ruolo" %>
+<%@ page import="static it.unisa.uniclass.common.Utils.escapeHTML" %>
 
 <%
   /* Sessione HTTP */
@@ -116,11 +117,11 @@
           iconPath = "images/icons/iconprof.png";
         }
     %>
-    <a href="chatServlet?accademico=<%=accademico.getEmail()%>&accademicoSelf=<%=accademicoSelf.getEmail()%>" class="conversation">
+    <a href="chatServlet?accademico=<%=escapeHTML(accademico.getEmail())%>&accademicoSelf=<%=escapeHTML(accademicoSelf.getEmail())%>" class="conversation">
       <div class="profile-picture">
         <img src="<%= iconPath %>" alt="Foto profilo">
       </div>
-      <div class="username"><%=accademico.getNome()%> <%=accademico.getCognome()%></div>
+      <div class="username"><%=escapeHTML(accademico.getNome())%> <%=escapeHTML(accademico.getCognome())%></div>
     </a>
     <% } %>
   </div>
@@ -132,7 +133,7 @@
 <div class="form-container">
   <form id="myForm" action="invioMessaggioServlet" method="post" class="chat-form">
     <label for="email" class="form-label">Seleziona un'email:</label>
-    <select id="email" name="email" class="form-select">
+    <select id="email" name="email" class="form-select" data-self="<%= escapeHTML(accademicoSelf.getEmail()) %>">
       <% if(accademicoSelf.getRuolo().equals(Ruolo.DOCENTE) || accademicoSelf.getRuolo().equals(Ruolo.COORDINATORE)) { %>
       <option value="tutti">Annuncio</option>
       <% } %>

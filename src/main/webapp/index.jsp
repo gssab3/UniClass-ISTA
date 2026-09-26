@@ -2,6 +2,7 @@
 <%@ page import="it.unisa.uniclass.utenti.model.Utente, it.unisa.uniclass.utenti.model.Tipo" %>
 <%@ page import="it.unisa.uniclass.orari.model.CorsoLaurea" %>
 <%@ page import="java.util.List" %>
+<%@ page import="static it.unisa.uniclass.common.Utils.escapeHTML" %>
 
 <%
 	/* Sessione HTTP */
@@ -81,7 +82,7 @@
 					for (CorsoLaurea cors : corsiLaurea) {
 						String corso = cors.getNome();
 			%>
-			<option value="<%= corso %>"><%= corso %></option>
+			<option value="<%= escapeHTML(corso) %>"><%= escapeHTML(corso) %></option>
 			<%
 					}
 				}

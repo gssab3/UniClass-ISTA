@@ -3,6 +3,7 @@
 <%@ page import="it.unisa.uniclass.orari.model.CorsoLaurea" %>
 <%@ page import="java.util.List" %>
 <%@ page import="it.unisa.uniclass.orari.service.AulaService" %>
+<%@ page import="it.unisa.uniclass.common.Utils" %>
 
 <%
     /* Sessione HTTP */
@@ -80,9 +81,13 @@
     <%
         if (edificitotali != null) {
             for(String edificio: edificitotali) {
+                String edificioUrl = java.net.URLEncoder.encode(
+                        edificio,
+                        java.nio.charset.StandardCharsets.UTF_8
+                );
     %>
     <div class="container">
-        <h2><a href="EdificioServlet?ed=<%=edificio%>">Edificio <%=edificio%></a></h2>
+        <h2><a href="EdificioServlet?ed=<%=edificioUrl%>">Edificio <%=Utils.escapeHTML(edificio)%></a></h2>
     </div>
     <%      }
     }

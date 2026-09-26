@@ -7,6 +7,7 @@
 <%@ page import="java.time.LocalDate" %>
 <%@ page import="java.time.LocalTime" %>
 <%@ page import="java.time.format.TextStyle" %>
+<%@ page import="static it.unisa.uniclass.common.Utils.escapeHTML" %>
 
 <%
     HttpSession sessione = request.getSession(true);
@@ -64,7 +65,7 @@
 <jsp:include page="header.jsp"/>
 <br><br>
 
-<h1>Edificio <%= edificio != null ? edificio : "" %></h1>
+<h1>Edificio <%= edificio != null ? escapeHTML(edificio) : "" %></h1>
 
 <ul class="buildings">
     <%
@@ -120,7 +121,7 @@
         <img class="imgOcc" src="images/icons/aulaLibera.png" alt="Libera">
         <% } %>
 
-        <%= aula.getNome() %>
+        <%= escapeHTML(aula.getNome()) %>
 
         <ul class="classes">
             <%
@@ -145,11 +146,11 @@
             %>
 
             <li class="occupata">
-                <%= giorno %> —
-                <%= oraInizio %> → <%= oraFine %> —
-                <%= nomeCorso %> —
-                <%= anno %> —
-                <%= resto %>
+                <%= escapeHTML(giorno) %> —
+                <%= escapeHTML(oraInizio) %> → <%= escapeHTML(oraFine) %> —
+                <%= escapeHTML(nomeCorso) %> —
+                <%= escapeHTML(anno) %> —
+                <%= escapeHTML(resto) %>
             </li>
 
             <%

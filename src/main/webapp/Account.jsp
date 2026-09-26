@@ -2,6 +2,7 @@
 <%@ page import="it.unisa.uniclass.utenti.model.Utente" %>
 <%@ page import="it.unisa.uniclass.utenti.model.Accademico" %>
 <%@ page import="it.unisa.uniclass.utenti.model.Ruolo" %>
+<%@ page import="static it.unisa.uniclass.common.Utils.escapeHTML" %>
 
 <%
     // Recupero Utente dalla Sessione
@@ -91,34 +92,34 @@
     <div class="account-container">
         <img src="<%=request.getContextPath()%>/<%=userIcon%>" alt="Profile Picture" class="profile-img">
 
-        <h2><%= u.getNome() %> <%= u.getCognome() %></h2>
+        <h2><%= escapeHTML(u.getNome()) %> <%= escapeHTML(u.getCognome()) %></h2>
         <p style="color: #666; font-size: 1.2em;"><%= ruoloStr %></p>
 
         <div class="info-group">
             <span class="info-label">Email Istituzionale</span>
-            <span class="info-value"><%= u.getEmail() %></span>
+            <span class="info-value"><%= escapeHTML(u.getEmail()) %></span>
         </div>
 
         <div class="info-group">
             <span class="info-label">Telefono</span>
-            <span class="info-value"><%= (u.getTelefono() != null) ? u.getTelefono() : "Non specificato" %></span>
+            <span class="info-value"><%= (u.getTelefono() != null) ? escapeHTML(u.getTelefono()) : "Non specificato" %></span>
         </div>
 
         <% if (isAccademico && acc != null) { %>
         <div class="info-group">
             <span class="info-label">Matricola</span>
-            <span class="info-value"><%= acc.getMatricola() %></span>
+            <span class="info-value"><%= escapeHTML(acc.getMatricola()) %></span>
         </div>
 
         <div class="info-group">
             <span class="info-label">Dipartimento</span>
-            <span class="info-value"><%= (acc.getDipartimento() != null) ? acc.getDipartimento() : "N/D" %></span>
+            <span class="info-value"><%= (acc.getDipartimento() != null) ? escapeHTML(acc.getDipartimento()) : "N/D" %></span>
         </div>
 
         <% if (acc.getCorsoLaurea() != null) { %>
         <div class="info-group">
             <span class="info-label">Corso di Laurea</span>
-            <span class="info-value"><%= acc.getCorsoLaurea().getNome() %></span>
+            <span class="info-value"><%= escapeHTML(acc.getCorsoLaurea().getNome()) %></span>
         </div>
         <% } %>
         <% } %>

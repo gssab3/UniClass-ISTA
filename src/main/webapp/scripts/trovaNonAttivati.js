@@ -20,15 +20,17 @@ function aggiornaListaUtenti() {
 
             response.forEach(function (utente) {
 
-                var listItem = document.createElement('p');
-                listItem.innerHTML = `
-                    <p><strong>Matricola:</strong> ${utente["matricola"]}</p>
-                    <p><strong>Email:</strong> ${utente["email"]}</p>
-                    <p><strong>Tipo:</strong> ${utente["tipo"]}</p>
-                `;
+                const p1 = document.createElement('p');
+                const p2 = document.createElement('p')
+                const p3 = document.createElement('p')
+                p1.textContent = `Matricola: ${utente["matricola"]}`
+                p2.textContent = `Email: ${utente['email']}`
+                p3.textContent = `Tipo: ${utente["tipo"]}`
 
-
-                listContainer.appendChild(listItem);
+                listContainer.appendChild(p1)
+                listContainer.appendChild(p2)
+                listContainer.appendChild(p3)
+                
             });
         } else {
             console.error("Errore nella richiesta AJAX: " + xhr.status);
