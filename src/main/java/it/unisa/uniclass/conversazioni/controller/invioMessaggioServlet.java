@@ -1,5 +1,6 @@
 package it.unisa.uniclass.conversazioni.controller;
 
+import it.unisa.uniclass.common.Utils;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
@@ -35,6 +36,11 @@ public class invioMessaggioServlet extends HttpServlet {
             String emailDest = request.getParameter("email");
             String messaggioBody = request.getParameter("testo");
             String topic = request.getParameter("topic");
+
+            if (!Utils.isTestoMsg(messaggioBody)) {
+                response.sendError(HttpServletResponse.SC_BAD_REQUEST);
+                return;
+            }
 
             Accademico accademicoSelf = userDirectory.getAccademico(emailSession);
             Accademico accademicoDest = userDirectory.getAccademico(emailDest);

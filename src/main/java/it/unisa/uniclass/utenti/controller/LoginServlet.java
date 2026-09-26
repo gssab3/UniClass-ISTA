@@ -1,5 +1,6 @@
 package it.unisa.uniclass.utenti.controller;
 
+import it.unisa.uniclass.common.Utils;
 import it.unisa.uniclass.common.exceptions.AuthenticationException;
 import it.unisa.uniclass.common.security.CredentialSecurity;
 import it.unisa.uniclass.utenti.model.Accademico;
@@ -32,6 +33,11 @@ public class LoginServlet extends HttpServlet {
             String email = request.getParameter("email");
             String passwordRaw = request.getParameter("password");
             String password = passwordRaw; // niente hash
+
+            if (!Utils.isEmail(email) || passwordRaw == null || passwordRaw.length() < 8 || passwordRaw.length() > 20) {
+                response.sendRedirect(request.getContextPath() + "/Login.jsp?action=error");
+                return;
+            }
 
 
             try {

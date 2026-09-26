@@ -1,5 +1,6 @@
 package it.unisa.uniclass.utenti.controller;
 
+import it.unisa.uniclass.common.Utils;
 import it.unisa.uniclass.common.security.CredentialSecurity;
 import it.unisa.uniclass.common.security.PasswordGenerator;
 import it.unisa.uniclass.utenti.model.Accademico;
@@ -28,6 +29,11 @@ public class AttivaUtentiServlet extends HttpServlet {
                 String email = req.getParameter("email");
                 String matricola = req.getParameter("matricola");
                 String ruoloReq = req.getParameter("tipo"); // Stringa dalla view (es. "STUDENTE")
+
+                if (!Utils.isEmail(email) || !Utils.isMatricola(matricola)) {
+                    resp.sendRedirect(req.getContextPath() + "/PersonaleTA/AttivaUtenti.jsp?action=error");
+                    return;
+                }
 
                 Utente utente = userDirectory.getUser(email);
 
@@ -59,6 +65,11 @@ public class AttivaUtentiServlet extends HttpServlet {
 
             } else if ("remove".equals(param)) {
                 String email = req.getParameter("email-remove");
+
+                if (!Utils.isEmail(email)) {
+                    resp.sendRedirect(req.getContextPath() + "/PersonaleTA/AttivaUtenti.jsp?action=error");
+                    return;
+                }
                 Utente utente = userDirectory.getUser(email);
 
                 if (utente instanceof Accademico) {
