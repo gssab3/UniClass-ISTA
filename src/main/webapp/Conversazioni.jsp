@@ -116,8 +116,16 @@
         } else if (accademico.getRuolo().equals(Ruolo.DOCENTE) || accademico.getRuolo().equals(Ruolo.COORDINATORE)) {
           iconPath = "images/icons/iconprof.png";
         }
+        String accademicoUrl = java.net.URLEncoder.encode(
+                accademico.getEmail(),
+                java.nio.charset.StandardCharsets.UTF_8
+        );
+        String accademicoSelfUrl = java.net.URLEncoder.encode(
+                accademicoSelf.getEmail(),
+                java.nio.charset.StandardCharsets.UTF_8
+        );
     %>
-    <a href="chatServlet?accademico=<%=escapeHTML(accademico.getEmail())%>&accademicoSelf=<%=escapeHTML(accademicoSelf.getEmail())%>" class="conversation">
+    <a href="chatServlet?accademico=<%=accademicoUrl%>&accademicoSelf=<%=accademicoSelfUrl%>" class="conversation">
       <div class="profile-picture">
         <img src="<%= iconPath %>" alt="Foto profilo">
       </div>

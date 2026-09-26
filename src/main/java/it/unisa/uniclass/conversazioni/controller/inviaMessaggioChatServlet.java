@@ -61,8 +61,16 @@ public class inviaMessaggioChatServlet extends HttpServlet {
                     if (m.getTopic() != null) m.getTopic().getNome();
                 }
 
-                response.sendRedirect("chatServlet?accademico=" + accademicoDest.getEmail() +
-                        "&accademicoSelf=" + accademicoSelf.getEmail());
+                String accademicoDestUrl = java.net.URLEncoder.encode(
+                        accademicoDest.getEmail(),
+                        java.nio.charset.StandardCharsets.UTF_8
+                );
+                String accademicoSelfUrl = java.net.URLEncoder.encode(
+                        accademicoSelf.getEmail(),
+                        java.nio.charset.StandardCharsets.UTF_8
+                );
+                response.sendRedirect("chatServlet?accademico=" + accademicoDestUrl +
+                        "&accademicoSelf=" + accademicoSelfUrl);
             } else {
                 throw new ServletException("Errore nel recupero degli utenti per la chat.");
             }
