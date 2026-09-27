@@ -4,9 +4,10 @@ import it.unisa.uniclass.common.Utils;
 import it.unisa.uniclass.common.exceptions.AuthenticationException;
 import it.unisa.uniclass.common.security.CSRF;
 import it.unisa.uniclass.common.security.CredentialSecurity;
+import it.unisa.uniclass.common.security.LoginRateLimiter;
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UserDirectory; // IMPORTA L'INTERFACCIA
+import it.unisa.uniclass.utenti.service.UserDirectory;
 import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -19,7 +20,6 @@ import java.io.IOException;
 @WebServlet(name = "loginServlet", value = "/Login")
 public class LoginServlet extends HttpServlet {
 
-    // SOSTITUZIONE: Uso UserDirectory invece di UtenteService
     @EJB
     private UserDirectory userDirectory;
 
@@ -35,7 +35,13 @@ public class LoginServlet extends HttpServlet {
         try {
             String email = request.getParameter("email");
             String passwordRaw = request.getParameter("password");
-            String password = passwordRaw; // niente hash
+            String password = passwordRaw;
+            String rateKey = LoginRateLimiter.key(request.getRemoteAddr(), email);
+
+            if (LoginRateLimiter.isBlocked(rateKey)) {
+                response.sendRedirect(request.getContextPath() + "/Login.jsp?action=blocked");
+                return;
+            }
 
             if (!CSRF.isValid(request)) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN);
@@ -43,16 +49,16 @@ public class LoginServlet extends HttpServlet {
             }
 
             if (!Utils.isEmail(email) || passwordRaw == null || passwordRaw.length() < 8 || passwordRaw.length() > 20) {
+                LoginRateLimiter.recordFailure(rateKey);
                 response.sendRedirect(request.getContextPath() + "/Login.jsp?action=error");
                 return;
             }
 
 
             try {
-                // CHIAMATA FACADE
                 Utente user = userDirectory.login(email, password);
+                LoginRateLimiter.reset(rateKey);
 
-                // Logica di controllo attivazione (Business Logic specifica del Controller o delegabile)
                 if (user instanceof Accademico) {
                     Accademico acc = (Accademico) user;
                     if (!acc.isAttivato()) {
@@ -68,6 +74,7 @@ public class LoginServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/Home");
 
             } catch (AuthenticationException e) {
+                LoginRateLimiter.recordFailure(rateKey);
                 response.sendRedirect(request.getContextPath() + "/Login.jsp?action=error");
             }
 

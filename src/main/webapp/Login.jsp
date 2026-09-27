@@ -41,6 +41,10 @@
                     <p class="error">Il tuo Account non è ancora stato attivato!</p>
                     <p class="error">Riceverai le credenziali di accesso quando il tuo account sarà attivo.</p>
                 </div>
+                <% } else if("blocked".equals(action)) { %>
+                <div class="tableRow">
+                    <p class="error">Troppi tentativi di accesso. Riprova tra 15 minuti.</p>
+                </div>
                 <% } %>
 
                 <div>
