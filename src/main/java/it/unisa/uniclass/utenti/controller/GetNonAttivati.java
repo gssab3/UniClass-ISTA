@@ -2,7 +2,7 @@ package it.unisa.uniclass.utenti.controller;
 
 import it.unisa.uniclass.utenti.model.Accademico;
 import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UserDirectory; // USIAMO L'INTERFACCIA
+import it.unisa.uniclass.utenti.service.UserDirectory;
 import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -22,7 +22,8 @@ public class GetNonAttivati extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
-            // Recupera tutti gli utenti tramite Facade
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
             List<Utente> tutti = userDirectory.getTuttiGliUtenti();
 
             JSONArray jsonArray = new JSONArray();
@@ -35,20 +36,22 @@ public class GetNonAttivati extends HttpServlet {
                         JSONObject jsonUtente = new JSONObject();
                         jsonUtente.put("email", acc.getEmail());
                         jsonUtente.put("matricola", acc.getMatricola());
-                        // Usa toString() del Ruolo per il campo "tipo"
                         jsonUtente.put("tipo", acc.getRuolo() != null ? acc.getRuolo().toString() : "");
                         jsonArray.put(jsonUtente);
                     }
                 }
             }
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
             resp.getWriter().write(jsonArray.toString());
 
         } catch (Exception e) {
             req.getServletContext().log("Error processing GetNonAttivati", e);
             try {
-                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                JSONObject errorResponse = new JSONObject();
+                errorResponse.put("error", "Errore durante il recupero degli utenti non attivati.");
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                resp.getWriter().write(errorResponse.toString());
             } catch (Exception ignored) {}
         }
     }

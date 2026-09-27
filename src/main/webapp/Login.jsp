@@ -12,7 +12,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="ISO-8859-1">
+    <meta charset="UTF-8">
     <meta name="viewport"  content="initial-scale=1, width=device-width">
     <title>UniClass</title>
     <link type="text/css" rel="stylesheet" href="styles/login.css">

@@ -1,7 +1,7 @@
 package it.unisa.uniclass.utenti.controller;
 
 import it.unisa.uniclass.utenti.model.Utente;
-import it.unisa.uniclass.utenti.service.UserDirectory; // USIAMO L'INTERFACCIA
+import it.unisa.uniclass.utenti.service.UserDirectory;
 import jakarta.ejb.EJB;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -21,6 +21,8 @@ public class GetEmailServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
+            resp.setContentType("application/json");
+            resp.setCharacterEncoding("UTF-8");
             // Recupero tramite Facade
             List<Utente> utenti = userDirectory.getTuttiGliUtenti();
             JSONArray jsonArray = new JSONArray();
@@ -29,8 +31,6 @@ public class GetEmailServlet extends HttpServlet {
                 jsonArray.put(u.getEmail());
             }
 
-            resp.setContentType("application/json");
-            resp.setCharacterEncoding("UTF-8");
             resp.getWriter().write(jsonArray.toString());
 
         } catch (Exception e) {
@@ -38,6 +38,8 @@ public class GetEmailServlet extends HttpServlet {
             try {
                 JSONObject errorResponse = new JSONObject();
                 errorResponse.put("error", "Errore durante il recupero delle email.");
+                resp.setContentType("application/json");
+                resp.setCharacterEncoding("UTF-8");
                 resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 resp.getWriter().write(errorResponse.toString());
             } catch (Exception ignored) {}
