@@ -1,7 +1,6 @@
 [![SonarQube Cloud](https://sonarcloud.io/images/project_badges/sonarcloud-light.svg)](https://sonarcloud.io/summary/new_code?id=gssab3_UniClass-ISTA)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=gssab3_UniClass-ISTA&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=gssab3_UniClass-ISTA)
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=gssab3_UniClass-ISTA&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=gssab3_UniClass-ISTA)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=gssab3_UniClass-ISTA&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=gssab3_UniClass-ISTA)
 
 
 # UniClass  
