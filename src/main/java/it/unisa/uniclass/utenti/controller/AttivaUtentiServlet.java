@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+import static it.unisa.uniclass.common.security.CommonPasswordListBlocker.isCommon;
+
 @WebServlet(name = "AttivaUtentiServlet", value = "/AttivaUtentiServlet")
 public class AttivaUtentiServlet extends HttpServlet {
 
@@ -51,7 +53,11 @@ public class AttivaUtentiServlet extends HttpServlet {
 
                     // Verifica Matricola e Ruolo
                     if (acc.getMatricola() != null && acc.getMatricola().equals(matricola) && ruoloMatch) {
-                        String password = PasswordGenerator.generatePassword(8);
+                        String password;
+                        do {
+                            password = PasswordGenerator.generatePassword(8);
+                        }
+                        while(isCommon(password));
 
                         acc.setAttivato(true);
                         acc.setPassword(CredentialSecurity.hashPassword(password));
