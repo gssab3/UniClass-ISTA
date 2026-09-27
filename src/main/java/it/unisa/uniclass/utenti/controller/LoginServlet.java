@@ -67,6 +67,9 @@ public class LoginServlet extends HttpServlet {
                     }
                 }
 
+                if (request.getSession(false) != null) {
+                    request.changeSessionId();
+                }
                 HttpSession session = request.getSession(true);
                 session.setAttribute("currentSessionUser", user);
                 session.setAttribute("utenteEmail", user.getEmail());
