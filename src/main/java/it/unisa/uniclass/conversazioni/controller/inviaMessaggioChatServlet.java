@@ -1,12 +1,14 @@
 package it.unisa.uniclass.conversazioni.controller;
 
 import it.unisa.uniclass.common.Utils;
+import it.unisa.uniclass.common.security.Authorization;
 import it.unisa.uniclass.common.security.CSRF;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.model.Topic;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
-import it.unisa.uniclass.utenti.service.UserDirectory; // INTERFACCIA
+import it.unisa.uniclass.utenti.model.Tipo;
+import it.unisa.uniclass.utenti.service.UserDirectory;
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -39,6 +41,9 @@ public class inviaMessaggioChatServlet extends HttpServlet {
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         try {
+            if (Authorization.require(request, response, Tipo.Accademico) == null) {
+                return;
+            }
             if (!CSRF.isValid(request)) {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN);
                 return;

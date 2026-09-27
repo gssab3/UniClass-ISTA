@@ -1,8 +1,11 @@
 package it.unisa.uniclass.conversazioni.controller;
 
+import it.unisa.uniclass.common.security.Authorization;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
+import it.unisa.uniclass.utenti.model.Tipo;
+import it.unisa.uniclass.utenti.model.Utente;
 import it.unisa.uniclass.utenti.service.UserDirectory;
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
@@ -36,10 +39,19 @@ public class chatServlet extends HttpServlet {
     @Override
     public void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
-            HttpSession session = req.getSession();
+            Utente current = Authorization.require(req, resp, Tipo.Accademico);
+            if (current == null) {
+                return;
+            }
+            HttpSession session = req.getSession(false);
 
             String emailDest = req.getParameter("accademico");
             String emailSelf = req.getParameter("accademicoSelf");
+
+            if (emailSelf == null || !emailSelf.equalsIgnoreCase(current.getEmail())) {
+                resp.sendError(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
 
             Accademico accademicoDest = userDirectory.getAccademico(emailDest);
             Accademico accademicoSelf = userDirectory.getAccademico(emailSelf);
@@ -64,7 +76,6 @@ public class chatServlet extends HttpServlet {
                 }
             }
 
-            // 🔥 FIX: inizializzazione relazioni LAZY
             for (Messaggio m : tuttiMessaggi) {
                 if (m.getAutore() != null) m.getAutore().getNome();
                 if (m.getDestinatario() != null) m.getDestinatario().getNome();

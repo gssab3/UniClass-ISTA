@@ -1,6 +1,8 @@
 package it.unisa.uniclass.utenti.controller;
 
+import it.unisa.uniclass.common.security.Authorization;
 import it.unisa.uniclass.utenti.model.Accademico;
+import it.unisa.uniclass.utenti.model.Tipo;
 import it.unisa.uniclass.utenti.model.Utente;
 import it.unisa.uniclass.utenti.service.UserDirectory;
 import jakarta.ejb.EJB;
@@ -22,6 +24,9 @@ public class GetNonAttivati extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
+            if (Authorization.require(req, resp, Tipo.PersonaleTA) == null) {
+                return;
+            }
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");
             List<Utente> tutti = userDirectory.getTuttiGliUtenti();
@@ -29,7 +34,6 @@ public class GetNonAttivati extends HttpServlet {
             JSONArray jsonArray = new JSONArray();
 
             for (Utente u : tutti) {
-                // Filtra solo gli Accademici non attivati
                 if (u instanceof Accademico) {
                     Accademico acc = (Accademico) u;
                     if (!acc.isAttivato()) {

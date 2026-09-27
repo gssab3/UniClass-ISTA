@@ -1,10 +1,12 @@
 package it.unisa.uniclass.utenti.controller;
 
 import it.unisa.uniclass.common.Utils;
+import it.unisa.uniclass.common.security.Authorization;
 import it.unisa.uniclass.common.security.CredentialSecurity;
 import it.unisa.uniclass.common.security.CSRF;
 import it.unisa.uniclass.common.security.PasswordGenerator;
 import it.unisa.uniclass.utenti.model.Accademico;
+import it.unisa.uniclass.utenti.model.Tipo;
 import it.unisa.uniclass.utenti.model.Utente;
 import it.unisa.uniclass.utenti.service.UserDirectory; // USIAMO L'INTERFACCIA
 import jakarta.ejb.EJB;
@@ -26,6 +28,9 @@ public class AttivaUtentiServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) {
         try {
+            if (Authorization.require(req, resp, Tipo.PersonaleTA) == null) {
+                return;
+            }
             if (!CSRF.isValid(req)) {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN);
                 return;

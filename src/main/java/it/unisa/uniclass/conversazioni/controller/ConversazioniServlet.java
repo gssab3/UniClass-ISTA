@@ -1,8 +1,11 @@
 package it.unisa.uniclass.conversazioni.controller;
 
+import it.unisa.uniclass.common.security.Authorization;
 import it.unisa.uniclass.conversazioni.model.Messaggio;
 import it.unisa.uniclass.conversazioni.service.MessaggioService;
 import it.unisa.uniclass.utenti.model.Accademico;
+import it.unisa.uniclass.utenti.model.Tipo;
+import it.unisa.uniclass.utenti.model.Utente;
 import it.unisa.uniclass.utenti.service.UserDirectory;
 import jakarta.ejb.EJB;
 import jakarta.servlet.ServletException;
@@ -40,13 +43,18 @@ public class ConversazioniServlet extends HttpServlet {
     @Override
     public void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
-            HttpSession session = request.getSession();
-            if (session.getAttribute("utenteEmail") == null) {
-                response.sendRedirect("Login.jsp");
+            Utente current = Authorization.require(request, response, Tipo.Accademico);
+            if (current == null) {
+                return;
+            }
+            HttpSession session = request.getSession(false);
+            String sessionEmail = session != null ? (String) session.getAttribute("utenteEmail") : null;
+            if (sessionEmail == null || !sessionEmail.equalsIgnoreCase(current.getEmail())) {
+                response.sendError(HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
 
-            String email = session.getAttribute("utenteEmail").toString();
+            String email = sessionEmail;
             Accademico accademicoSelf = userDirectory.getAccademico(email);
 
             if (accademicoSelf != null) {

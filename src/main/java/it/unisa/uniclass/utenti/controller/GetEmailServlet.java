@@ -1,5 +1,7 @@
 package it.unisa.uniclass.utenti.controller;
 
+import it.unisa.uniclass.common.security.Authorization;
+import it.unisa.uniclass.utenti.model.Tipo;
 import it.unisa.uniclass.utenti.model.Utente;
 import it.unisa.uniclass.utenti.service.UserDirectory;
 import jakarta.ejb.EJB;
@@ -21,9 +23,11 @@ public class GetEmailServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) {
         try {
+            if (Authorization.require(req, resp, Tipo.PersonaleTA) == null) {
+                return;
+            }
             resp.setContentType("application/json");
             resp.setCharacterEncoding("UTF-8");
-            // Recupero tramite Facade
             List<Utente> utenti = userDirectory.getTuttiGliUtenti();
             JSONArray jsonArray = new JSONArray();
 
